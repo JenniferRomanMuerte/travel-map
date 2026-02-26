@@ -1,0 +1,63 @@
+/* 1. Box sizing coherente */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+/* 2. Eliminar márgenes por defecto */
+* {
+  margin: 0;
+  padding: 0;
+}
+
+/* 3. Altura completa para layouts full screen */
+html,
+body,
+#root {
+  height: 100%;
+}
+
+/* 4. Suavizado de fuentes */
+body {
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+/* 5. Mejor comportamiento de imágenes */
+img,
+picture,
+video,
+canvas,
+svg {
+  display: block;
+  max-width: 100%;
+}
+
+/* 6. Inputs y botones heredan tipografía */
+input,
+button,
+textarea,
+select {
+  font: inherit;
+}
+
+/* 7. Botones sin estilos raros */
+button {
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+/* 8. Listas limpias */
+ul,
+ol {
+  list-style: none;
+}
+
+/* 9. Enlaces sin decoración por defecto */
+a {
+  text-decoration: none;
+  color: inherit;
+}
