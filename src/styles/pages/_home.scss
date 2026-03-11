@@ -2,6 +2,7 @@
 .home {
   position: relative;
   z-index: 2;
+  pointer-events: none;
 
   min-height: 100vh;
   display: flex;

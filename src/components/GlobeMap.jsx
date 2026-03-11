@@ -19,41 +19,32 @@ const GlobeMap = () => {
       antialias: true,
     });
 
-
-
     map.on("style.load", () => {
 
-      // Quitar carreteras
       const layers = map.getStyle().layers;
 
-      console.log(
-        layers
-          .filter(l => l.id.includes("boundary") || l.id.includes("admin"))
-          .map(l => ({ id: l.id, type: l.type }))
-      );
-
+      // Quitar carreteras
       layers.forEach(layer => {
         if (layer.id.includes("road")) {
           map.setLayoutProperty(layer.id, "visibility", "none");
         }
       });
 
-      // Hacer océano más vibrante
+      // Océano más azul
       layers.forEach(layer => {
         if (layer.id.includes("water")) {
           map.setPaintProperty(layer.id, "fill-color", "#157eff");
         }
       });
 
-
-      // Saturar Verdes
+      // Verdes
       layers.forEach(layer => {
         if (layer.id.includes("land")) {
           map.setPaintProperty(layer.id, "fill-color", "#458435");
         }
       });
 
-      // Oscurecer zonas áridas / beige
+      // Zonas áridas
       layers.forEach(layer => {
         if (
           layer.id.includes("landuse") ||
@@ -63,8 +54,7 @@ const GlobeMap = () => {
         }
       });
 
-
-      //Menos relieve
+      // Quitar relieve
       layers.forEach(layer => {
         if (layer.id.includes("hillshade")) {
           map.setLayoutProperty(layer.id, "visibility", "none");
@@ -77,13 +67,46 @@ const GlobeMap = () => {
         "horizon-blend": 0.02,
         "space-color": "rgb(5, 15, 50)"
       });
+
+    });
+
+    // Crear Pin con click derecho de botón
+    map.on("contextmenu", (e) => {
+
+      const { lng, lat } = e.lngLat;
+
+      new mapboxgl.Marker()
+        .setLngLat([lng, lat])
+        .addTo(map);
+
+    });
+
+    // Crear Pin con pulsación larga en móvil
+
+    let pressTimer;
+
+    map.on("touchstart", (e) => {
+
+      pressTimer = setTimeout(() => {
+
+        const { lng, lat } = e.lngLat;
+
+        new mapboxgl.Marker()
+          .setLngLat([lng, lat])
+          .addTo(map);
+
+      }, 600); // 600ms pulsación larga
+
+    });
+
+    map.on("touchend", () => {
+      clearTimeout(pressTimer);
     });
 
     return () => map.remove();
   }, []);
 
   return (
-
     <div
       ref={mapContainer}
       className="globe-map"
