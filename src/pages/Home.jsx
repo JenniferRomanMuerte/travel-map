@@ -2,10 +2,13 @@ import GlobeMap from "../components/GlobeMap";
 
 const Home = () => {
   return (
-    <div className="home">
-      <h1>Los viajes de Maria y Jennifer</h1>
+    <>
       <GlobeMap />
-    </div>
+      <div className="home">
+        <h1 className="home__title">Los viajes de María y Jennifer</h1>
+
+      </div>
+    </>
   );
 };
 
