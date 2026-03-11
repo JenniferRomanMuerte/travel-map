@@ -1,11 +1,16 @@
-import { useEffect, useRef } from "react";
-import mapboxgl from "mapbox-gl";
+import { useEffect, useRef, useState } from "react";
 import { useMapPins } from "../hooks/useMapPins";
+import mapboxgl from "mapbox-gl";
 import "mapbox-gl/dist/mapbox-gl.css";
+import TravelFormModal from "../components/TravelFormModal";
 
 const GlobeMap = () => {
 
   const mapContainer = useRef(null);
+
+  // Estados para el modal
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedCoords, setSelectedCoords] = useState(null);
 
   useEffect(() => {
 
@@ -22,7 +27,7 @@ const GlobeMap = () => {
       antialias: true,
     });
 
-    const { createPin, loadPins  } = useMapPins(map);
+    const { createPin, loadPins } = useMapPins(map);
 
     // cargar pins guardados cuando el mapa esté listo
     map.on("load", () => {
@@ -33,7 +38,8 @@ const GlobeMap = () => {
     map.on("contextmenu", (e) => {
 
       const { lng, lat } = e.lngLat;
-      createPin(lng, lat);
+      setSelectedCoords({ lng, lat });
+      setIsModalOpen(true);
 
     });
 
@@ -45,7 +51,8 @@ const GlobeMap = () => {
       pressTimer = setTimeout(() => {
 
         const { lng, lat } = e.lngLat;
-        createPin(lng, lat);
+        setSelectedCoords({ lng, lat });
+        setIsModalOpen(true);
 
       }, 600);
 
@@ -59,7 +66,19 @@ const GlobeMap = () => {
 
   }, []);
 
-  return <div ref={mapContainer} className="globe-map" />;
+  return (
+    <>
+      <div ref={mapContainer} className="globe-map" />
+      <TravelFormModal
+        isOpen={isModalOpen}
+        coords={selectedCoords}
+        onClose={() => setIsModalOpen(false)}
+        onSave={(data) => {
+          console.log("datos del viaje", data);
+        }}
+      />
+    </>
+  );
 
 };
 
