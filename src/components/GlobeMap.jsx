@@ -36,7 +36,7 @@ const GlobeMap = () => {
 
       // crear pin directamente (más eficiente que recargar todos)
       if (mapPinsRef.current && place) {
-        mapPinsRef.current.createPin(place.lng, place.lat);
+        mapPinsRef.current.createPin(place);
       }
 
       setIsModalOpen(false);

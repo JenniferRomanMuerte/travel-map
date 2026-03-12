@@ -2,9 +2,11 @@ import { useState, useEffect } from "react";
 
 const TravelFormModal = ({ isOpen, onClose, onSave, coords }) => {
 
+  const [location, setLocation] = useState(null);
   const [visitedAt, setVisitedAt] = useState("");
   const [notes, setNotes] = useState("");
   const [files, setFiles] = useState([]);
+  const [errors, setErrors] = useState({});
 
   // limpiar formulario cuando se cierre el modal
   useEffect(() => {
@@ -19,12 +21,67 @@ const TravelFormModal = ({ isOpen, onClose, onSave, coords }) => {
 
   }, [isOpen]);
 
+  useEffect(() => {
+
+    if (!isOpen || !coords) return;
+
+    async function fetchLocation() {
+
+      const token = import.meta.env.VITE_MAPBOX_TOKEN;
+
+      const res = await fetch(
+        `https://api.mapbox.com/geocoding/v5/mapbox.places/${coords.lng},${coords.lat}.json?types=place&access_token=${token}`
+      );
+
+      const data = await res.json();
+
+      let city = "Lugar desconocido";
+      let country = "";
+
+      if (data.features.length > 0) {
+
+        city = data.features[0].text;
+
+        const countryContext = data.features[0].context?.find(c =>
+          c.id.includes("country")
+        );
+
+        if (countryContext) {
+          country = countryContext.text;
+        }
+
+      }
+
+      setLocation({ city, country });
+
+    }
+
+    fetchLocation();
+
+  }, [isOpen, coords]);
+
 
   // Envío del formulario
   function handleSubmit(e) {
 
     e.preventDefault();
 
+    const newErrors = {};
+
+    if (!visitedAt) {
+      newErrors.visitedAt = "Debes indicar la fecha del viaje";
+    }
+
+    if (files.length === 0) {
+      newErrors.files = "Debes subir al menos una foto o vídeo";
+    }
+
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
+      return;
+    }
+
+    setErrors({});
     onSave({
       visitedAt,
       notes,
@@ -78,6 +135,11 @@ const TravelFormModal = ({ isOpen, onClose, onSave, coords }) => {
       <div className="modal">
 
         <h2 className="modal__title">Añadir viaje</h2>
+        {location && (
+          <p className="modal__location">
+            📍 {location.city}, {location.country}
+          </p>
+        )}
 
         <form className="modal__form" onSubmit={handleSubmit}>
 
@@ -88,6 +150,9 @@ const TravelFormModal = ({ isOpen, onClose, onSave, coords }) => {
             value={visitedAt}
             onChange={(e) => setVisitedAt(e.target.value)}
           />
+          {errors.visitedAt && (
+            <p className="form-error">{errors.visitedAt}</p>
+          )}
 
           <label>Notas</label>
 
@@ -104,11 +169,14 @@ const TravelFormModal = ({ isOpen, onClose, onSave, coords }) => {
             accept="image/*,video/*"
             onChange={handleFiles}
           />
-          <p>
-            {files.length === 0
-              ? "Ningún archivo seleccionado"
-              : `${photosCount} foto(s) y ${videosCount} video(s) preparados para subir`}
-          </p>
+          {errors.files && (
+            <p className="form-error">{errors.files}</p>
+          )}
+          {files.length > 0 && (
+            <p>
+              {photosCount} foto(s) y {videosCount} video(s) preparados para subir
+            </p>
+          )}
 
           <div className="modal__form--buttons">
 

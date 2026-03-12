@@ -16,7 +16,7 @@ export async function saveTravel(data, setProcessModal) {
   const place = await createPlace({
     lat: coords.lat,
     lng: coords.lng,
-    visited_at: visitedAt,
+    visited_at: visitedAt || null,
     notes
   });
 
