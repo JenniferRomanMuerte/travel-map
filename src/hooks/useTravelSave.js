@@ -8,13 +8,27 @@ export async function saveTravel(data, setProcessModal) {
 
   const { visitedAt, notes, files, coords } = data;
 
+  const { data: { user } } = await supabase.auth.getUser();
+
+  if (!user) throw new Error("Usuario no autenticado");
+
+
   setProcessModal({
     isOpen: true,
     message: "Guardando viaje...",
     type: "loading"
   });
 
-  const { city, country } = await getCityCountry(coords.lng, coords.lat);
+  let city = "Lugar desconocido";
+  let country = "Desconocido";
+
+  try {
+    const result = await getCityCountry(coords.lng, coords.lat);
+    city = result.city;
+    country = result.country;
+  } catch (error) {
+    console.warn("Geocoding falló:", error);
+  }
 
   const place = await createPlace({
     lat: coords.lat,
@@ -22,7 +36,8 @@ export async function saveTravel(data, setProcessModal) {
     city,
     country,
     visited_at: visitedAt || null,
-    notes
+    notes,
+    user_id: user.id
   });
 
   if (!place) throw new Error("Place no creado");
@@ -31,11 +46,13 @@ export async function saveTravel(data, setProcessModal) {
 
     const filesArray = Array.from(files);
 
-    for (let file of filesArray) {
+    for (let i = 0; i < filesArray.length; i++) {
+
+      let file = filesArray[i];
 
       if (file.type.startsWith("video")) {
 
-        const maxSize = 30 * 1024 * 1024; // 30MB
+        const maxSize = 30 * 1024 * 1024;
 
         if (file.size > maxSize) {
 
@@ -53,7 +70,7 @@ export async function saveTravel(data, setProcessModal) {
 
       setProcessModal({
         isOpen: true,
-        message: "Subiendo archivos...",
+        message: `Subiendo archivo ${i + 1} de ${filesArray.length}...`,
         type: "loading"
       });
 
