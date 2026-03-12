@@ -2,6 +2,7 @@ import { createPlace } from "../services/placesService";
 import { uploadFile } from "../services/storageService";
 import { saveMedia } from "../services/mediaService";
 import { compressVideo } from "../services/videoCompressor";
+import { getCityCountry } from "../services/geocodingService";
 
 export async function saveTravel(data, setProcessModal) {
 
@@ -13,9 +14,13 @@ export async function saveTravel(data, setProcessModal) {
     type: "loading"
   });
 
+  const { city, country } = await getCityCountry(coords.lng, coords.lat);
+
   const place = await createPlace({
     lat: coords.lat,
     lng: coords.lng,
+    city,
+    country,
     visited_at: visitedAt || null,
     notes
   });

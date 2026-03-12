@@ -1,4 +1,5 @@
 import { useRef, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { useMapbox } from "../hooks/useMapbox";
 import { saveTravel } from "../hooks/useTravelSave";
 import TravelFormModal from "../components/TravelFormModal";
@@ -6,6 +7,8 @@ import ProcessModal from "../components/ProcessModal";
 import "mapbox-gl/dist/mapbox-gl.css";
 
 const GlobeMap = () => {
+
+  const navigate = useNavigate();
 
   const mapContainer = useRef(null);
 
@@ -19,10 +22,14 @@ const GlobeMap = () => {
   });
 
   // hook que inicializa mapbox y devuelve acceso a los pins
-  const { mapPinsRef } = useMapbox(mapContainer, (lngLat) => {
-    setSelectedCoords(lngLat);
-    setIsModalOpen(true);
-  });
+  const { mapPinsRef } = useMapbox(
+    mapContainer,
+    (lngLat) => {
+      setSelectedCoords(lngLat);
+      setIsModalOpen(true);
+    },
+    navigate
+  );
 
   // ------------------------------------------------
   // GUARDAR VIAJE

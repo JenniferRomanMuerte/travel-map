@@ -29,3 +29,17 @@ export async function getPlaces() {
 
   return data ?? [];
 }
+
+export async function getPlaceById(id) {
+
+  const { data, error } = await supabase
+    .from("places")
+    .select("*")
+    .eq("id", id)
+    .single();
+
+  if (error) throw error;
+
+  return data;
+
+}

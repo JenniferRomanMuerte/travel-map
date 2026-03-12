@@ -14,3 +14,18 @@ export async function saveMedia(placeId, type, url) {
 
   if (error) throw error;
 }
+
+export async function getMediaByPlace(placeId) {
+
+  const { data, error } = await supabase
+    .from("media")
+    .select("*")
+    .eq("place_id", placeId);
+
+  if (error) {
+    console.error("Error cargando media:", error);
+    return [];
+  }
+
+  return data ?? [];
+}
