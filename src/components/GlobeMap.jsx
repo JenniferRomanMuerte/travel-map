@@ -1,81 +1,93 @@
-import { useEffect, useRef, useState } from "react";
-import { useMapPins } from "../hooks/useMapPins";
-import mapboxgl from "mapbox-gl";
-import "mapbox-gl/dist/mapbox-gl.css";
+import { useRef, useState } from "react";
+import { useMapbox } from "../hooks/useMapbox";
+import { saveTravel } from "../hooks/useTravelSave";
 import TravelFormModal from "../components/TravelFormModal";
+import ProcessModal from "../components/ProcessModal";
+import "mapbox-gl/dist/mapbox-gl.css";
 
 const GlobeMap = () => {
 
   const mapContainer = useRef(null);
 
-  // Estados para el modal
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedCoords, setSelectedCoords] = useState(null);
 
-  useEffect(() => {
+  const [processModal, setProcessModal] = useState({
+    isOpen: false,
+    message: "",
+    type: "loading"
+  });
 
-    if (!mapContainer.current) return;
+  // hook que inicializa mapbox y devuelve acceso a los pins
+  const { mapPinsRef } = useMapbox(mapContainer, (lngLat) => {
+    setSelectedCoords(lngLat);
+    setIsModalOpen(true);
+  });
 
-    mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_TOKEN;
+  // ------------------------------------------------
+  // GUARDAR VIAJE
+  // ------------------------------------------------
 
-    const map = new mapboxgl.Map({
-      container: mapContainer.current,
-      style: "mapbox://styles/mapbox/outdoors-v12",
-      projection: "globe",
-      zoom: 0.8,
-      center: [0, 20],
-      antialias: true,
-    });
+  async function handleSaveTravel(data) {
 
-    const { createPin, loadPins } = useMapPins(map);
+    try {
 
-    // cargar pins guardados cuando el mapa esté listo
-    map.on("load", () => {
-      loadPins();
-    });
+      const place = await saveTravel(data, setProcessModal);
 
-    // click derecho en ordenador
-    map.on("contextmenu", (e) => {
+      // crear pin directamente (más eficiente que recargar todos)
+      if (mapPinsRef.current && place) {
+        mapPinsRef.current.createPin(place.lng, place.lat);
+      }
 
-      const { lng, lat } = e.lngLat;
-      setSelectedCoords({ lng, lat });
-      setIsModalOpen(true);
+      setIsModalOpen(false);
 
-    });
+      setProcessModal({
+        isOpen: true,
+        message: "Viaje guardado correctamente",
+        type: "success"
+      });
 
-    // pulsación larga en móvil
-    let pressTimer;
+      // cerrar modal automáticamente
+      setTimeout(() => {
+        setProcessModal(prev => ({ ...prev, isOpen: false }));
+      }, 2000);
 
-    map.on("touchstart", (e) => {
+    } catch (error) {
 
-      pressTimer = setTimeout(() => {
+      console.error(error);
 
-        const { lng, lat } = e.lngLat;
-        setSelectedCoords({ lng, lat });
-        setIsModalOpen(true);
+      setProcessModal({
+        isOpen: true,
+        message: "No se pudo guardar el viaje",
+        type: "error"
+      });
 
-      }, 600);
+    }
 
-    });
+  }
 
-    map.on("touchend", () => {
-      clearTimeout(pressTimer);
-    });
-
-    return () => map.remove();
-
-  }, []);
+  // ------------------------------------------------
+  // RENDER
+  // ------------------------------------------------
 
   return (
     <>
       <div ref={mapContainer} className="globe-map" />
+
       <TravelFormModal
         isOpen={isModalOpen}
         coords={selectedCoords}
         onClose={() => setIsModalOpen(false)}
-        onSave={(data) => {
-          console.log("datos del viaje", data);
-        }}
+        onSave={handleSaveTravel}
+      />
+
+      <ProcessModal
+        isOpen={processModal.isOpen}
+        message={processModal.message}
+        type={processModal.type}
+        onClose={() =>
+          setProcessModal(prev => ({ ...prev, isOpen: false }))
+        }
       />
     </>
   );

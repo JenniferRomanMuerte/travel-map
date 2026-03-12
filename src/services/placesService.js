@@ -1,16 +1,19 @@
 import { supabase } from "../lib/supabase";
 
-export async function savePlace(place) {
+export async function createPlace(data) {
 
-  const { data, error } = await supabase
+  const { data: place, error } = await supabase
     .from("places")
-    .insert([place]);
+    .insert([data])
+    .select()
+    .single();   
 
   if (error) {
-    console.error("Error guardando lugar:", error);
+    console.error("Error creando lugar:", error);
+    throw error;
   }
 
-  return data;
+  return place;
 }
 
 export async function getPlaces() {

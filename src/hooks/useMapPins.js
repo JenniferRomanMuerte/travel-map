@@ -1,5 +1,5 @@
 import mapboxgl from "mapbox-gl";
-import { savePlace, getPlaces } from "../services/placesService";
+import { createPlace, getPlaces } from "../services/placesService";
 
 export function useMapPins(map) {
 
@@ -36,7 +36,7 @@ export function useMapPins(map) {
     marker.setPopup(popup);
     popup.addTo(map);
 
-    await savePlace({
+    await createPlace({
       city,
       country,
       lat,
