@@ -30,13 +30,19 @@ export async function saveTravel(data, setProcessModal) {
 
       if (file.type.startsWith("video")) {
 
-        setProcessModal({
-          isOpen: true,
-          message: "Reduciendo tamaño del vídeo...",
-          type: "loading"
-        });
+        const maxSize = 30 * 1024 * 1024; // 30MB
 
-        file = await compressVideo(file);
+        if (file.size > maxSize) {
+
+          setProcessModal({
+            isOpen: true,
+            message: "Comprimiendo vídeo...",
+            type: "loading"
+          });
+
+          file = await compressVideo(file);
+
+        }
 
       }
 

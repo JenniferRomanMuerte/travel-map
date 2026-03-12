@@ -8,20 +8,20 @@ export async function uploadFile(file) {
 
   const filePath = `media/${fileName}`;
 
-  console.log(file.type);
-  console.log(file.name);
-  console.log(file.size);
+
   const { error } = await supabase.storage
     .from("travel-media")
-    .upload(filePath, file, file, {
+    .upload(filePath, file, {
       contentType: file.type
     });
 
   if (error) throw error;
 
-  const { data } = supabase.storage
+  const { data: publicData } = supabase.storage
     .from("travel-media")
     .getPublicUrl(filePath);
 
-  return data.publicUrl;
+  return publicData.publicUrl;
+
+
 }

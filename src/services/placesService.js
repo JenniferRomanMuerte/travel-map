@@ -6,7 +6,7 @@ export async function createPlace(data) {
     .from("places")
     .insert([data])
     .select()
-    .single();   
+    .single();
 
   if (error) {
     console.error("Error creando lugar:", error);
@@ -27,5 +27,5 @@ export async function getPlaces() {
     return [];
   }
 
-  return data;
+  return data ?? [];
 }
