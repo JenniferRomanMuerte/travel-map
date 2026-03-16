@@ -1,10 +1,11 @@
 import GlobeMap from "../components/GlobeMap";
 import AuthModal from "../components/AuthModal";
+import Navbar from "../components/NavBar";
 import { useAuth } from "../context/AuthContext";
 import { useMemo, useState } from "react";
 
 const Home = () => {
-  const { user, profile, loading } = useAuth();
+  const { user, profile, loading, logout } = useAuth();
 
   const [isAuthOpen, setIsAuthOpen] = useState(false);
   const [authMode, setAuthMode] = useState("login");
@@ -19,37 +20,34 @@ const Home = () => {
     setIsAuthOpen(true);
   }
 
-  const cachedUsername = useMemo(() => {
-    return localStorage.getItem("travelmap_username") || "";
-  }, []);
-
-  const username = profile?.username || cachedUsername;
-
-  let title = "Travel Map";
-
-  if (user && username) {
-    title = `Los viajes de ${username}`;
+  async function handleLogout() {
+    try {
+      await logout();
+    } catch (error) {
+      console.error("Error al cerrar sesión:", error);
+    }
   }
+
+  const username =
+    profile?.username ||
+    localStorage.getItem("travelmap_username") ||
+    "";
+
+  const title =
+    user && username ? `Los viajes de ${username}` : "Travel Map";
 
   return (
     <>
+      <Navbar
+        title={title}
+        user={user}
+        loading={loading}
+        onLogin={openLogin}
+        onRegister={openRegister}
+        onLogout={handleLogout}
+      />
+
       <GlobeMap />
-
-      <div className="home">
-        <h1 className="home__title">{title}</h1>
-
-        {!loading && !user && (
-          <>
-            <button className="home__btn" onClick={openLogin}>
-              Login
-            </button>
-
-            <button className="home__btn" onClick={openRegister}>
-              Crear cuenta
-            </button>
-          </>
-        )}
-      </div>
 
       <AuthModal
         isOpen={isAuthOpen}
