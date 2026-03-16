@@ -6,19 +6,30 @@ import { getCityCountry } from "../services/geocodingService";
 import { supabase } from "../lib/supabase";
 
 export async function saveTravel(data, setProcessModal) {
-
   const { visitedAt, notes, files, coords } = data;
 
-  const { data: { user } } = await supabase.auth.getUser();
+  if (!coords?.lat || !coords?.lng) {
+    throw new Error("Coordenadas no válidas");
+  }
 
-  if (!user) throw new Error("Usuario no autenticado");
+  const {
+    data: { user },
+    error: userError
+  } = await supabase.auth.getUser();
 
+  if (userError || !user) {
+    throw new Error("Usuario no autenticado");
+  }
 
-  setProcessModal({
-    isOpen: true,
-    message: "Guardando viaje...",
-    type: "loading"
-  });
+  function updateLoadingMessage(message) {
+    setProcessModal({
+      isOpen: true,
+      message,
+      type: "loading"
+    });
+  }
+
+  updateLoadingMessage("Guardando viaje...");
 
   let city = "Lugar desconocido";
   let country = "Desconocido";
@@ -41,52 +52,36 @@ export async function saveTravel(data, setProcessModal) {
     user_id: user.id
   });
 
-  if (!place) throw new Error("Place no creado");
+  if (!place) {
+    throw new Error("Place no creado");
+  }
 
   if (files && files.length > 0) {
-
     const filesArray = Array.from(files);
 
     for (let i = 0; i < filesArray.length; i++) {
-
       let file = filesArray[i];
 
       if (file.type.startsWith("video")) {
-
         const maxSize = 30 * 1024 * 1024;
 
         if (file.size > maxSize) {
-
-          setProcessModal({
-            isOpen: true,
-            message: "Comprimiendo vídeo...",
-            type: "loading"
-          });
-
+          updateLoadingMessage("Comprimiendo vídeo...");
           file = await compressVideo(file);
-
         }
-
       }
 
-      setProcessModal({
-        isOpen: true,
-        message: `Subiendo archivo ${i + 1} de ${filesArray.length}...`,
-        type: "loading"
-      });
+      updateLoadingMessage(
+        `Subiendo archivo ${i + 1} de ${filesArray.length}...`
+      );
 
       const url = await uploadFile(file);
 
-      const type = file.type.startsWith("video")
-        ? "video"
-        : "photo";
+      const type = file.type.startsWith("video") ? "video" : "photo";
 
       await saveMedia(place.id, type, url);
-
     }
-
   }
 
   return place;
-
 }

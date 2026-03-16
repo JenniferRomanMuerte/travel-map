@@ -1,94 +1,54 @@
-import { useEffect, useState } from "react";
-import { login, register } from "../services/authService";
+import AuthForm from "./AuthForm";
 
-const AuthForm = ({ mode, onSuccess }) => {
+const AuthModal = ({ isOpen, mode, onClose, switchMode }) => {
+  if (!isOpen) return null;
 
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [username, setUsername] = useState("");
-
-  const [error, setError] = useState("");
-
-  // resetear formulario cuando cambia login/register
-  useEffect(() => {
-
-    setEmail("");
-    setPassword("");
-    setUsername("");
-    setError("");
-
-  }, [mode]);
-
-  async function handleSubmit(e) {
-
-    e.preventDefault();
-    setError("");
-
-    try {
-
-      if (mode === "login") {
-        await login(email, password);
-      }
-
-      if (mode === "register") {
-        await register(email, password, username);
-      }
-
-      onSuccess();
-
-    } catch (err) {
-
-      setError("Error de autenticación");
-
+  function handleOverlayClick(e) {
+    if (e.target === e.currentTarget) {
+      onClose();
     }
-
   }
 
   return (
+    <div className="modal-overlay" onClick={handleOverlayClick}>
+      <div className="modal">
+        <h2>
+          {mode === "login" ? "Login" : "Crear cuenta"}
+        </h2>
 
-    <form onSubmit={handleSubmit}>
+        <AuthForm
+          mode={mode}
+          onSuccess={onClose}
+        />
 
-      {mode === "register" && (
-        <>
-          <label>Username</label>
+        <button type="button" onClick={onClose}>
+          Cancelar
+        </button>
 
-          <input
-            type="text"
-            value={username}
-            onChange={(e) => setUsername(e.target.value)}
-            required
-          />
-        </>
-      )}
-
-      <label>Email</label>
-
-      <input
-        type="email"
-        value={email}
-        onChange={(e) => setEmail(e.target.value)}
-        required
-      />
-
-      <label>Password</label>
-
-      <input
-        type="password"
-        value={password}
-        onChange={(e) => setPassword(e.target.value)}
-        required
-      />
-
-      {error && <p className="form-error">{error}</p>}
-
-      <button type="submit">
-        {mode === "login" ? "Entrar" : "Crear cuenta"}
-      </button>
-
-    </form>
-
+        {mode === "login" ? (
+          <p>
+            ¿No tienes cuenta?{" "}
+            <button
+              type="button"
+              onClick={() => switchMode("register")}
+            >
+              Crear cuenta
+            </button>
+          </p>
+        ) : (
+          <p>
+            ¿Ya tienes cuenta?{" "}
+            <button
+              type="button"
+              onClick={() => switchMode("login")}
+            >
+              Login
+            </button>
+          </p>
+        )}
+      </div>
+    </div>
   );
-
 };
 
-export default AuthForm;
+export default AuthModal;

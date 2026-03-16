@@ -1,67 +1,88 @@
 export async function compressVideo(file) {
+  if (!file || !file.type.startsWith("video/")) {
+    throw new Error("Archivo de vídeo no válido");
+  }
 
   const video = document.createElement("video");
-  video.src = URL.createObjectURL(file);
+  const objectUrl = URL.createObjectURL(file);
+
+  video.src = objectUrl;
   video.muted = true;
   video.playsInline = true;
 
-  // esperar metadata
-  await new Promise(resolve => {
-    video.onloadedmetadata = resolve;
-  });
+  let animationFrameId = null;
 
-  const canvas = document.createElement("canvas");
+  try {
+    await new Promise((resolve, reject) => {
+      video.onloadedmetadata = resolve;
+      video.onerror = () => reject(new Error("No se pudo cargar el vídeo"));
+    });
 
-  const maxWidth = 1280;
-  const scale = Math.min(1, maxWidth / video.videoWidth);
+    const canvas = document.createElement("canvas");
 
-  canvas.width = video.videoWidth * scale;
-  canvas.height = video.videoHeight * scale;
+    const maxWidth = 1280;
+    const scale = Math.min(1, maxWidth / video.videoWidth);
 
-  const ctx = canvas.getContext("2d");
+    canvas.width = video.videoWidth * scale;
+    canvas.height = video.videoHeight * scale;
 
-  // capturamos el stream del canvas
-  const stream = canvas.captureStream(30);
+    const ctx = canvas.getContext("2d");
 
-  const recorder = new MediaRecorder(stream, {
-    mimeType: "video/webm",
-    videoBitsPerSecond: 2_000_000 // bitrate reducido
-  });
+    if (!ctx) {
+      throw new Error("No se pudo obtener el contexto del canvas");
+    }
 
-  const chunks = [];
+    const stream = canvas.captureStream(30);
 
-  recorder.ondataavailable = e => {
-    if (e.data.size > 0) chunks.push(e.data);
-  };
+    const mimeType = MediaRecorder.isTypeSupported("video/webm;codecs=vp9")
+      ? "video/webm;codecs=vp9"
+      : "video/webm";
 
-  // dibujar cada frame del vídeo en el canvas
-  function drawFrame() {
-    if (video.paused || video.ended) return;
-    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-    requestAnimationFrame(drawFrame);
+    const recorder = new MediaRecorder(stream, {
+      mimeType,
+      videoBitsPerSecond: 2_000_000
+    });
+
+    const chunks = [];
+
+    recorder.ondataavailable = (e) => {
+      if (e.data.size > 0) {
+        chunks.push(e.data);
+      }
+    };
+
+    function drawFrame() {
+      if (video.paused || video.ended) return;
+
+      ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+      animationFrameId = requestAnimationFrame(drawFrame);
+    }
+
+    recorder.start();
+
+    await video.play();
+    drawFrame();
+
+    await new Promise((resolve) => {
+      video.onended = resolve;
+    });
+
+    recorder.stop();
+
+    await new Promise((resolve) => {
+      recorder.onstop = resolve;
+    });
+
+    return new File(
+      chunks,
+      file.name.replace(/\.\w+$/, ".webm"),
+      { type: "video/webm" }
+    );
+  } finally {
+    if (animationFrameId) {
+      cancelAnimationFrame(animationFrameId);
+    }
+
+    URL.revokeObjectURL(objectUrl);
   }
-
-  recorder.start();
-
-  video.play();
-  drawFrame();
-
-  await new Promise(resolve => {
-    video.onended = resolve;
-  });
-
-  recorder.stop();
-
-  await new Promise(resolve => {
-    recorder.onstop = resolve;
-  });
-
-  // liberar memoria
-  URL.revokeObjectURL(video.src);
-
-  return new File(
-    chunks,
-    file.name.replace(/\.\w+$/, ".webm"),
-    { type: "video/webm" }
-  );
 }

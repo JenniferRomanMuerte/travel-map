@@ -21,7 +21,8 @@ export async function getPlaces(userId) {
   const { data, error } = await supabase
     .from("places")
     .select("*")
-    .eq("user_id", userId);
+    .eq("user_id", userId)
+    .order("created_at", { ascending: false });
 
   if (error) {
     console.error("Error leyendo lugares:", error);
@@ -38,7 +39,9 @@ export async function getPlaceById(id) {
     .eq("id", id)
     .single();
 
-  if (error) throw error;
+  if (error) {
+    throw error;
+  }
 
   return data;
 }

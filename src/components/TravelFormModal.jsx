@@ -1,69 +1,43 @@
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
+import { getCityCountry } from "../services/geocodingService";
 
 const TravelFormModal = ({ isOpen, onClose, onSave, coords }) => {
-
   const [location, setLocation] = useState(null);
   const [visitedAt, setVisitedAt] = useState("");
   const [notes, setNotes] = useState("");
   const [files, setFiles] = useState([]);
   const [errors, setErrors] = useState({});
 
-  // limpiar formulario cuando se cierre el modal
   useEffect(() => {
-
     if (!isOpen) {
-
+      setLocation(null);
       setVisitedAt("");
       setNotes("");
       setFiles([]);
-
+      setErrors({});
     }
-
   }, [isOpen]);
 
   useEffect(() => {
-
     if (!isOpen || !coords) return;
 
     async function fetchLocation() {
-
-      const token = import.meta.env.VITE_MAPBOX_TOKEN;
-
-      const res = await fetch(
-        `https://api.mapbox.com/geocoding/v5/mapbox.places/${coords.lng},${coords.lat}.json?types=place&access_token=${token}`
-      );
-
-      const data = await res.json();
-
-      let city = "Lugar desconocido";
-      let country = "";
-
-      if (data.features.length > 0) {
-
-        city = data.features[0].text;
-
-        const countryContext = data.features[0].context?.find(c =>
-          c.id.includes("country")
-        );
-
-        if (countryContext) {
-          country = countryContext.text;
-        }
-
+      try {
+        const { city, country } = await getCityCountry(coords.lng, coords.lat);
+        setLocation({ city, country });
+      } catch (error) {
+        console.error("Error obteniendo ubicación:", error);
+        setLocation({
+          city: "Lugar desconocido",
+          country: ""
+        });
       }
-
-      setLocation({ city, country });
-
     }
 
     fetchLocation();
-
   }, [isOpen, coords]);
 
-
-  // Envío del formulario
   function handleSubmit(e) {
-
     e.preventDefault();
 
     const newErrors = {};
@@ -82,74 +56,85 @@ const TravelFormModal = ({ isOpen, onClose, onSave, coords }) => {
     }
 
     setErrors({});
+
     onSave({
       visitedAt,
       notes,
       files,
       coords
     });
-
   }
 
-  // Captura de archivos
   function handleFiles(e) {
-
     const newFiles = Array.from(e.target.files);
 
-    setFiles(prevFiles => {
-
-      const filteredFiles = newFiles.filter(newFile => {
-
-        return !prevFiles.some(existingFile =>
-          existingFile.name === newFile.name &&
-          existingFile.size === newFile.size &&
-          existingFile.lastModified === newFile.lastModified
+    setFiles((prevFiles) => {
+      const filteredFiles = newFiles.filter((newFile) => {
+        return !prevFiles.some(
+          (existingFile) =>
+            existingFile.name === newFile.name &&
+            existingFile.size === newFile.size &&
+            existingFile.lastModified === newFile.lastModified
         );
-
       });
 
       return [...prevFiles, ...filteredFiles];
-
     });
 
-    // permite volver a seleccionar el mismo archivo
-    e.target.value = "";
+    setErrors((prev) => ({
+      ...prev,
+      files: undefined
+    }));
 
+    e.target.value = "";
+  }
+
+  function handleVisitedAtChange(e) {
+    setVisitedAt(e.target.value);
+
+    setErrors((prev) => ({
+      ...prev,
+      visitedAt: undefined
+    }));
+  }
+
+  function handleOverlayClick(e) {
+    if (e.target === e.currentTarget) {
+      onClose();
+    }
   }
 
   if (!isOpen) return null;
 
-  const photosCount = files.filter(file =>
+  const photosCount = files.filter((file) =>
     file.type.startsWith("image")
   ).length;
 
-  const videosCount = files.filter(file =>
+  const videosCount = files.filter((file) =>
     file.type.startsWith("video")
   ).length;
 
-
   return (
-
-    <div className="modal-overlay">
-
+    <div className="modal-overlay" onClick={handleOverlayClick}>
       <div className="modal">
-
         <h2 className="modal__title">Añadir viaje</h2>
+
         {location && (
           <p className="modal__location">
-            📍 {location.city}, {location.country}
+            📍 {location.city}
+            {location.country ? `, ${location.country}` : ""}
           </p>
         )}
 
         <form className="modal__form" onSubmit={handleSubmit}>
-
           <label>Fecha del viaje</label>
 
           <input
             type="date"
             value={visitedAt}
-            onChange={(e) => setVisitedAt(e.target.value)}
+            onChange={handleVisitedAtChange}
           />
+
           {errors.visitedAt && (
             <p className="form-error">{errors.visitedAt}</p>
           )}
@@ -161,7 +146,7 @@ const TravelFormModal = ({ isOpen, onClose, onSave, coords }) => {
             onChange={(e) => setNotes(e.target.value)}
           />
 
-          <label>Fotos / videos</label>
+          <label>Fotos / vídeos</label>
 
           <input
             type="file"
@@ -169,17 +154,18 @@ const TravelFormModal = ({ isOpen, onClose, onSave, coords }) => {
             accept="image/*,video/*"
             onChange={handleFiles}
           />
+
           {errors.files && (
             <p className="form-error">{errors.files}</p>
           )}
+
           {files.length > 0 && (
             <p>
-              {photosCount} foto(s) y {videosCount} video(s) preparados para subir
+              {photosCount} foto(s) y {videosCount} vídeo(s) preparados para subir
             </p>
           )}
 
-          <div className="modal__form--buttons">
-
+          <div className="modal__buttons">
             <button type="submit">
               Guardar
             </button>
@@ -187,17 +173,11 @@ const TravelFormModal = ({ isOpen, onClose, onSave, coords }) => {
             <button type="button" onClick={onClose}>
               Cancelar
             </button>
-
           </div>
-
         </form>
-
       </div>
-
     </div>
-
   );
-
 };
 
 export default TravelFormModal;

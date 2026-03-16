@@ -7,10 +7,16 @@ export function useMapbox(containerRef, onLongPress, navigate, user) {
   const mapPinsRef = useRef(null);
   const isMapLoadedRef = useRef(false);
   const userRef = useRef(user);
+  const onLongPressRef = useRef(onLongPress);
+  const pressTimerRef = useRef(null);
 
   useEffect(() => {
     userRef.current = user;
   }, [user]);
+
+  useEffect(() => {
+    onLongPressRef.current = onLongPress;
+  }, [onLongPress]);
 
   useEffect(() => {
     if (!containerRef.current) return;
@@ -41,26 +47,34 @@ export function useMapbox(containerRef, onLongPress, navigate, user) {
     });
 
     map.on("contextmenu", (e) => {
-      onLongPress(e.lngLat);
+      onLongPressRef.current?.(e.lngLat);
     });
 
-    let pressTimer;
-
     map.on("touchstart", (e) => {
-      pressTimer = setTimeout(() => {
-        onLongPress(e.lngLat);
+      pressTimerRef.current = setTimeout(() => {
+        onLongPressRef.current?.(e.lngLat);
       }, 600);
     });
 
-    map.on("touchend", () => clearTimeout(pressTimer));
+    map.on("touchend", () => {
+      if (pressTimerRef.current) {
+        clearTimeout(pressTimerRef.current);
+        pressTimerRef.current = null;
+      }
+    });
 
     return () => {
+      if (pressTimerRef.current) {
+        clearTimeout(pressTimerRef.current);
+        pressTimerRef.current = null;
+      }
+
       map.remove();
       mapRef.current = null;
       mapPinsRef.current = null;
       isMapLoadedRef.current = false;
     };
-  }, [containerRef, navigate, onLongPress]);
+  }, [containerRef, navigate]);
 
   useEffect(() => {
     if (!mapPinsRef.current) return;

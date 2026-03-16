@@ -2,14 +2,19 @@ import mapboxgl from "mapbox-gl";
 import { getPlaces } from "../services/placesService";
 
 export function mapPinsManager(map, navigate) {
-  const markers = [];
+  const pins = [];
 
   function createPin(place) {
+    if (
+      typeof place?.lat !== "number" ||
+      typeof place?.lng !== "number"
+    ) {
+      return;
+    }
+
     const marker = new mapboxgl.Marker()
       .setLngLat([place.lng, place.lat])
       .addTo(map);
-
-    markers.push(marker);
 
     const popup = new mapboxgl.Popup({
       offset: 25,
@@ -31,21 +36,31 @@ export function mapPinsManager(map, navigate) {
       e.stopPropagation();
       navigate(`/place/${place.id}`);
     });
+
+    pins.push({ marker, popup });
   }
 
   function clearPins() {
-    markers.forEach(marker => marker.remove());
-    markers.length = 0;
+    pins.forEach(({ marker, popup }) => {
+      popup.remove();
+      marker.remove();
+    });
+
+    pins.length = 0;
   }
 
   async function loadPins(userId) {
-    clearPins();
+    try {
+      clearPins();
 
-    const places = await getPlaces(userId);
+      const places = await getPlaces(userId);
 
-    places.forEach(place => {
-      createPin(place);
-    });
+      places.forEach(place => {
+        createPin(place);
+      });
+    } catch (error) {
+      console.error("Error cargando pins:", error);
+    }
   }
 
   return { createPin, loadPins, clearPins };
