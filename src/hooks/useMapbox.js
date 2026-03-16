@@ -1,6 +1,6 @@
 import { useEffect, useRef } from "react";
 import mapboxgl from "mapbox-gl";
-import { useMapPins } from "./useMapPins";
+import { mapPinsManager } from "../maps/mapPinsManager";
 
 export function useMapbox(containerRef, onLongPress, navigate, user) {
 
@@ -24,7 +24,7 @@ export function useMapbox(containerRef, onLongPress, navigate, user) {
 
     mapRef.current = map;
 
-    const mapPins = useMapPins(map, navigate);
+    const mapPins = mapPinsManager(map, navigate);
     mapPinsRef.current = mapPins;
 
 
