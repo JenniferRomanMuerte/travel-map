@@ -1,0 +1,102 @@
+@use "../base/variables" as var;
+
+.auth-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  width: 100%;
+
+  &__group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+  }
+
+  &__label {
+    font-family: var.$font-base;
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: var.$color-blue-950;
+  }
+
+  &__input {
+    width: 100%;
+    min-height: 44px;
+    padding: 0.75rem 0.9rem;
+    border: 1px solid var.$color-blue-600-alpha-35;
+    border-radius: var.$radius-sm;
+    background: rgba(255, 255, 255, 0.72);
+    color: var.$color-blue-950;
+    font-family: var.$font-base;
+    font-size: 0.95rem;
+    line-height: 1.2;
+    outline: none;
+    transition:
+      border-color var.$transition-fast,
+      box-shadow var.$transition-fast,
+      background-color var.$transition-fast;
+
+    &::placeholder {
+      color: rgba(11, 27, 53, 0.55);
+    }
+
+    &:focus {
+      border-color: var.$color-blue-600-alpha-50;
+      background: rgba(255, 255, 255, 0.9);
+      box-shadow: 0 0 0 3px rgba(40, 97, 177, 0.12);
+    }
+  }
+
+  &__error {
+    margin: -0.2rem 0 0;
+    font-family: var.$font-base;
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: #7a1020;
+    text-align: center;
+  }
+
+  &__submit {
+    min-height: 44px;
+    border: 1px solid var.$color-blue-600-alpha-35;
+    border-radius: var.$radius-sm;
+    padding: 0.75rem 1rem;
+    background: rgba(255, 255, 255, 0.38);
+    color: var.$color-blue-950;
+    font-family: var.$font-base;
+    font-size: 0.96rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition:
+      transform var.$transition-fast,
+      background-color var.$transition-fast,
+      border-color var.$transition-fast,
+      box-shadow var.$transition-fast;
+
+    &:hover:not(:disabled) {
+      transform: translateY(-1px);
+      background: rgba(255, 255, 255, 0.5);
+      border-color: var.$color-blue-600-alpha-50;
+      box-shadow: var.$shadow-btn;
+    }
+
+    &:disabled {
+      opacity: 0.7;
+      cursor: not-allowed;
+    }
+  }
+}
+
+@media (min-width: var.$bp-tablet) {
+  .auth-form {
+    gap: 1.1rem;
+
+    &__input {
+      min-height: 46px;
+    }
+
+    &__submit {
+      min-height: 46px;
+    }
+  }
+}

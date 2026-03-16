@@ -9,43 +9,39 @@ const AuthModal = ({ isOpen, mode, onClose, switchMode }) => {
     }
   }
 
-  return (
-    <div className="modal-overlay" onClick={handleOverlayClick}>
-      <div className="modal">
-        <h2>
+   return (
+    <div className="auth-modal__overlay" onClick={handleOverlayClick}>
+      <div className="auth-modal">
+        <button
+          className="auth-modal__close"
+          type="button"
+          onClick={onClose}
+          aria-label="Cerrar modal"
+        >
+          ×
+        </button>
+
+        <h2 className="auth-modal__title">
           {mode === "login" ? "Login" : "Crear cuenta"}
         </h2>
 
-        <AuthForm
-          mode={mode}
-          onSuccess={onClose}
-        />
+        <div className="auth-modal__form">
+          <AuthForm
+            mode={mode}
+            onSuccess={onClose}
+          />
+        </div>
 
-        <button type="button" onClick={onClose}>
-          Cancelar
-        </button>
-
-        {mode === "login" ? (
-          <p>
-            ¿No tienes cuenta?{" "}
-            <button
-              type="button"
-              onClick={() => switchMode("register")}
-            >
-              Crear cuenta
-            </button>
-          </p>
-        ) : (
-          <p>
-            ¿Ya tienes cuenta?{" "}
-            <button
-              type="button"
-              onClick={() => switchMode("login")}
-            >
-              Login
-            </button>
-          </p>
-        )}
+        <p className="auth-modal__switch-text">
+          {mode === "login" ? "¿No tienes cuenta?" : "¿Ya tienes cuenta?"}{" "}
+          <button
+            className="auth-modal__switch-btn"
+            type="button"
+            onClick={() => switchMode(mode === "login" ? "register" : "login")}
+          >
+            {mode === "login" ? "Crear cuenta" : "Login"}
+          </button>
+        </p>
       </div>
     </div>
   );

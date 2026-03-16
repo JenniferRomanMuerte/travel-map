@@ -1,2 +1,66 @@
+// Tipografía
 $font-title: "Fontdiner Swanky", cursive;
-$font-base: "Inter", sans-serif; 
+$font-base: "Inter", sans-serif;
+
+// Colores
+$color-night-900: #040814;
+$color-night-800: #060c1c;
+$color-night-700: #081021;
+$color-blue-300: #ddebff;
+$color-blue-400: #7faee8;
+$color-blue-500: #4f84d1;
+$color-blue-600: #2861b1;
+$color-blue-900: #0b1b35;
+$color-blue-950: #08152b;
+$color-white-soft: #f4f8ff;
+$color-blue-600-alpha-35: rgba(40, 97, 177, 0.35);
+$color-blue-600-alpha-50: rgba(40, 97, 177, 0.5);
+
+// Gradientes
+$gradient-title: linear-gradient(
+  90deg,
+  #ddebff,
+  #2861b1,
+  #ddebff
+);
+
+$gradient-btn: linear-gradient(
+  90deg,
+  #ddebff 0%,
+  #7faee8 45%,
+  #ddebff 100%
+);
+
+$gradient-btn-primary: linear-gradient(
+  90deg,
+  #ddebff 0%,
+  #4f84d1 50%,
+  #ddebff 100%
+);
+
+$gradient-navbar-overlay: linear-gradient(
+  to bottom,
+  rgba(4, 8, 20, 0.98) 0%,
+  rgba(6, 12, 28, 0.82) 35%,
+  rgba(8, 16, 33, 0.65) 65%,
+  rgba(8, 16, 33, 0.42) 85%,
+  rgba(8, 16, 33, 0) 100%
+);
+
+//Bordes y Radios
+$radius-sm: 10px;
+$radius-md: 14px;
+$radius-lg: 20px;
+$radius-pill: 999px;
+
+//Sombras
+$shadow-btn: 0 6px 18px rgba(8, 18, 38, 0.18);
+$shadow-btn-hover: 0 8px 22px rgba(8, 18, 38, 0.26);
+
+// Transiciones
+$transition-fast: 0.2s ease;
+$transition-medium: 0.35s ease;
+
+// Breakpoints
+$bp-tablet: 768px;
+$bp-desktop: 1200px;

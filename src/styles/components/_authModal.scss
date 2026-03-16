@@ -1,0 +1,107 @@
+@use "../base/variables" as var;
+
+.auth-modal {
+  position: relative;
+  width: min(90%, 28rem);
+  padding: 2.2rem 1.2rem 1.2rem;
+  border-radius: var.$radius-lg;
+  background: var.$gradient-title;
+  background-size: 200% auto;
+  box-shadow: var.$shadow-btn-hover;
+  color: var.$color-blue-950;
+  pointer-events: auto;
+
+
+  &__overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+    background: rgba(4, 8, 20, 0.72);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+  }
+
+  &__title {
+    margin: 0 0 1.2rem;
+    font-family: var.$font-title;
+    font-size: clamp(1.7rem, 6vw, 2.3rem);
+    line-height: 1.2;
+    text-align: center;
+    color: var.$color-blue-950;
+  }
+
+  &__form {
+    margin-bottom: 1rem;
+  }
+
+  &__close {
+  position: absolute;
+  top: 0.8rem;
+  right: 0.8rem;
+  width: 2rem;
+  height: 2rem;
+  border: 1px solid var.$color-blue-600-alpha-35;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.28);
+  color: var.$color-blue-950;
+  font-size: 1.2rem;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition:
+    transform var.$transition-fast,
+    background-color var.$transition-fast,
+    border-color var.$transition-fast;
+
+  &:hover {
+    transform: scale(1.05);
+    background: rgba(255, 255, 255, 0.42);
+    border-color: var.$color-blue-600-alpha-50;
+  }
+}
+
+
+  &__switch-text {
+    margin: 0;
+    text-align: center;
+    font-family: var.$font-base;
+    font-size: 0.95rem;
+    line-height: 1.4;
+    color: var.$color-blue-950;
+  }
+
+  &__switch-btn {
+    border: none;
+    background: transparent;
+    padding: 0;
+    font: inherit;
+    font-weight: 700;
+    color: var.$color-blue-900;
+    cursor: pointer;
+    text-decoration: underline;
+    transition: opacity var.$transition-fast;
+
+    &:hover {
+      opacity: 0.8;
+    }
+  }
+}
+
+
+
+@media (min-width: var.$bp-tablet) {
+  .auth-modal {
+    width: min(88%, 30rem);
+    padding: 2.4rem 1.6rem 1.4rem;
+
+    &__title {
+      margin-bottom: 1.4rem;
+    }
+  }
+}
