@@ -3,6 +3,7 @@ import { uploadFile } from "../services/storageService";
 import { saveMedia } from "../services/mediaService";
 import { compressVideo } from "../services/videoCompressor";
 import { getCityCountry } from "../services/geocodingService";
+import { supabase } from "../lib/supabase";
 
 export async function saveTravel(data, setProcessModal) {
 

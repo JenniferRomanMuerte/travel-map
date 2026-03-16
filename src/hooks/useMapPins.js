@@ -3,11 +3,15 @@ import { getPlaces } from "../services/placesService";
 
 export function useMapPins(map, navigate) {
 
+  const markers = [];
+
   function createPin(place) {
 
     const marker = new mapboxgl.Marker()
       .setLngLat([place.lng, place.lat])
       .addTo(map);
+
+    markers.push(marker);
 
     const popup = new mapboxgl.Popup({
       offset: 25,
@@ -37,7 +41,17 @@ export function useMapPins(map, navigate) {
 
   }
 
+  function clearPins() {
+
+    markers.forEach(marker => marker.remove());
+
+    markers.length = 0;
+
+  }
+
   async function loadPins() {
+
+    clearPins();
 
     const places = await getPlaces();
 

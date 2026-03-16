@@ -2,7 +2,7 @@ import { useEffect, useRef } from "react";
 import mapboxgl from "mapbox-gl";
 import { useMapPins } from "./useMapPins";
 
-export function useMapbox(containerRef, onLongPress, navigate) {
+export function useMapbox(containerRef, onLongPress, navigate, user) {
 
   const mapRef = useRef(null);
   const mapPinsRef = useRef(null);
@@ -27,9 +27,6 @@ export function useMapbox(containerRef, onLongPress, navigate) {
     const mapPins = useMapPins(map, navigate);
     mapPinsRef.current = mapPins;
 
-    map.on("load", () => {
-      mapPins.loadPins();
-    });
 
     map.on("contextmenu", (e) => {
       onLongPress(e.lngLat);
@@ -50,6 +47,15 @@ export function useMapbox(containerRef, onLongPress, navigate) {
     return () => map.remove();
 
   }, []);
+
+  useEffect(() => {
+
+    if (!user) return;
+    if (!mapPinsRef.current) return;
+
+    mapPinsRef.current.loadPins();
+
+  }, [user]);
 
   return { mapRef, mapPinsRef };
 

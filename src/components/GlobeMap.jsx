@@ -2,6 +2,7 @@ import { useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useMapbox } from "../hooks/useMapbox";
 import { saveTravel } from "../hooks/useTravelSave";
+import { useAuth } from "../context/AuthContext";
 import TravelFormModal from "../components/TravelFormModal";
 import ProcessModal from "../components/ProcessModal";
 import "mapbox-gl/dist/mapbox-gl.css";
@@ -9,6 +10,8 @@ import "mapbox-gl/dist/mapbox-gl.css";
 const GlobeMap = () => {
 
   const navigate = useNavigate();
+
+  const { user } = useAuth();
 
   const mapContainer = useRef(null);
 
@@ -28,7 +31,8 @@ const GlobeMap = () => {
       setSelectedCoords(lngLat);
       setIsModalOpen(true);
     },
-    navigate
+    navigate,
+    user
   );
 
   // ------------------------------------------------

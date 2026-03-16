@@ -15,9 +15,10 @@ export function AuthProvider({ children }) {
 
   async function loadProfile(currentUser) {
 
+    console.log("Loading profile for:", currentUser.id);
     try {
 
-      // 1️⃣ intentar username desde metadata
+      //  intentar username desde metadata
       const metadataUsername = currentUser.user_metadata?.username;
 
       if (metadataUsername) {
@@ -27,13 +28,15 @@ export function AuthProvider({ children }) {
 
       }
 
-      // 2️⃣ fallback → consultar tabla profiles
+      // fallback → consultar tabla profiles
       const { data, error } = await supabase
         .from("profiles")
         .select("username")
         .eq("id", currentUser.id)
         .single();
 
+        console.log("profile from DB:", data);
+        
       if (error) {
         console.error("Error cargando profile:", error);
         setProfile(null);
@@ -100,8 +103,11 @@ export function AuthProvider({ children }) {
 
         setUser(currentUser);
 
+        console.log("Auth change:", session?.user);
+
         if (currentUser) {
           await loadProfile(currentUser);
+          console.log("Loading profile for:", currentUser.id);
         } else {
           setProfile(null);
         }
