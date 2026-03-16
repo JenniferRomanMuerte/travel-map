@@ -35,6 +35,9 @@
     animation: shine 6s linear infinite;
 
   }
+  &__btn{
+    pointer-events: auto;
+  }
 }
 
 @keyframes shine {
