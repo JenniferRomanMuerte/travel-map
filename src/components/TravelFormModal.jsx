@@ -115,64 +115,90 @@ const TravelFormModal = ({ isOpen, onClose, onSave, coords }) => {
   ).length;
 
   return (
-    <div className="modal-overlay" onClick={handleOverlayClick}>
-      <div className="modal">
-        <h2 className="modal__title">Añadir viaje</h2>
+    <div className="travel-modal__overlay" onClick={handleOverlayClick}>
+      <div className="travel-modal">
+        <button
+          className="travel-modal__close"
+          type="button"
+          onClick={onClose}
+          aria-label="Cerrar modal"
+        >
+          ×
+        </button>
+
+        <h2 className="travel-modal__title">Añadir viaje</h2>
 
         {location && (
-          <p className="modal__location">
+          <p className="travel-modal__location">
             📍 {location.city}
             {location.country ? `, ${location.country}` : ""}
           </p>
         )}
 
-        <form className="modal__form" onSubmit={handleSubmit}>
-          <label>Fecha del viaje</label>
+        <form className="travel-modal__form" onSubmit={handleSubmit}>
+          <div className="travel-modal__group">
+            <label className="travel-modal__label" htmlFor="visitedAt">
+              Fecha del viaje
+            </label>
 
-          <input
-            type="date"
-            value={visitedAt}
-            onChange={handleVisitedAtChange}
-          />
+            <input
+              className="travel-modal__input"
+              id="visitedAt"
+              type="date"
+              value={visitedAt}
+              onChange={handleVisitedAtChange}
+            />
 
-          {errors.visitedAt && (
-            <p className="form-error">{errors.visitedAt}</p>
-          )}
+            {errors.visitedAt && (
+              <p className="travel-modal__error">{errors.visitedAt}</p>
+            )}
+          </div>
 
-          <label>Notas</label>
+          <div className="travel-modal__group">
+            <label className="travel-modal__label" htmlFor="notes">
+              Notas
+            </label>
 
-          <textarea
-            value={notes}
-            onChange={(e) => setNotes(e.target.value)}
-          />
+            <textarea
+              className="travel-modal__textarea"
+              id="notes"
+              value={notes}
+              onChange={(e) => setNotes(e.target.value)}
+              placeholder="Añade recuerdos, detalles o curiosidades del viaje..."
+              rows="4"
+            />
+          </div>
 
-          <label>Fotos / vídeos</label>
+          <div className="travel-modal__group">
+            <label className="travel-modal__label" htmlFor="files">
+              Fotos / vídeos
+            </label>
 
-          <input
-            type="file"
-            multiple
-            accept="image/*,video/*"
-            onChange={handleFiles}
-          />
+            <input
+              className="travel-modal__input travel-modal__input--file"
+              id="files"
+              type="file"
+              multiple
+              accept="image/*,video/*"
+              onChange={handleFiles}
+            />
 
-          {errors.files && (
-            <p className="form-error">{errors.files}</p>
-          )}
+            {errors.files && (
+              <p className="travel-modal__error">{errors.files}</p>
+            )}
 
-          {files.length > 0 && (
-            <p>
-              {photosCount} foto(s) y {videosCount} vídeo(s) preparados para subir
-            </p>
-          )}
+            {files.length > 0 && (
+              <p className="travel-modal__files-info">
+                {photosCount} foto(s) y {videosCount} vídeo(s) preparados para subir
+              </p>
+            )}
+          </div>
 
-          <div className="modal__buttons">
-            <button type="submit">
+          <div className="travel-modal__actions">
+            <button className="travel-modal__btn travel-modal__btn--primary" type="submit">
               Guardar
             </button>
 
-            <button type="button" onClick={onClose}>
-              Cancelar
-            </button>
           </div>
         </form>
       </div>
