@@ -1,12 +1,11 @@
 import GlobeMap from "../components/GlobeMap";
 import AuthModal from "../components/AuthModal";
 import { useAuth } from "../context/AuthContext";
-import { useState } from 'react'
-
+import { useMemo, useState } from "react";
 
 const Home = () => {
-
   const { user, profile, loading } = useAuth();
+
   const [isAuthOpen, setIsAuthOpen] = useState(false);
   const [authMode, setAuthMode] = useState("login");
 
@@ -20,18 +19,26 @@ const Home = () => {
     setIsAuthOpen(true);
   }
 
+  const cachedUsername = useMemo(() => {
+    return localStorage.getItem("travelmap_username") || "";
+  }, []);
+
+  const username = profile?.username || cachedUsername;
+
+  let title = "Travel Map";
+
+  if (user && username) {
+    title = `Los viajes de ${username}`;
+  }
 
   return (
     <>
-      {!loading && <GlobeMap />}
+      <GlobeMap />
 
       <div className="home">
-        <h1 className="home__title">{loading
-          ? "Travel Map"
-          : user
-            ? `Los viajes de ${profile?.username}`
-            : "Travel Map"}</h1>
-        {!user && (
+        <h1 className="home__title">{title}</h1>
+
+        {!loading && !user && (
           <>
             <button className="home__btn" onClick={openLogin}>
               Login
@@ -43,6 +50,7 @@ const Home = () => {
           </>
         )}
       </div>
+
       <AuthModal
         isOpen={isAuthOpen}
         mode={authMode}

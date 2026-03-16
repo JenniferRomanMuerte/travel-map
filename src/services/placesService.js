@@ -1,7 +1,6 @@
 import { supabase } from "../lib/supabase";
 
 export async function createPlace(data) {
-
   const { data: place, error } = await supabase
     .from("places")
     .insert([data])
@@ -16,11 +15,13 @@ export async function createPlace(data) {
   return place;
 }
 
-export async function getPlaces() {
+export async function getPlaces(userId) {
+  if (!userId) return [];
 
   const { data, error } = await supabase
     .from("places")
-    .select("*");
+    .select("*")
+    .eq("user_id", userId);
 
   if (error) {
     console.error("Error leyendo lugares:", error);
@@ -31,7 +32,6 @@ export async function getPlaces() {
 }
 
 export async function getPlaceById(id) {
-
   const { data, error } = await supabase
     .from("places")
     .select("*")
@@ -41,5 +41,4 @@ export async function getPlaceById(id) {
   if (error) throw error;
 
   return data;
-
 }

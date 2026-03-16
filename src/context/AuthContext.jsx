@@ -4,120 +4,101 @@ import { supabase } from "../lib/supabase";
 const AuthContext = createContext();
 
 export function AuthProvider({ children }) {
-
   const [user, setUser] = useState(null);
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  // -----------------------------------------
-  // CARGAR PERFIL
-  // -----------------------------------------
-
   async function loadProfile(currentUser) {
-
-
-    try {
-
-      //  intentar username desde metadata
-      const metadataUsername = currentUser.user_metadata?.username;
-
-      if (metadataUsername) {
-
-        setProfile({ username: metadataUsername });
-        return;
-
-      }
-
-      // fallback → consultar tabla profiles
-      const { data, error } = await supabase
-        .from("profiles")
-        .select("username")
-        .eq("id", currentUser.id)
-        .single();
-
-
-      if (error) {
-        console.error("Error cargando profile:", error);
-        setProfile(null);
-        return;
-      }
-
-      setProfile(data);
-
-    } catch (err) {
-
-      console.error("Error inesperado cargando profile:", err);
-      setProfile(null);
-
-    }
-
+  if (!currentUser) {
+    setProfile(null);
+    localStorage.removeItem("travelmap_username");
+    return;
   }
 
-  // -----------------------------------------
-  // EFECTO PRINCIPAL
-  // -----------------------------------------
+  try {
+    const { data, error } = await supabase
+      .from("profiles")
+      .select("username")
+      .eq("id", currentUser.id)
+      .single();
+
+    if (error) {
+      console.error("Error cargando profile:", error);
+      setProfile(null);
+      return;
+    }
+
+    setProfile(data);
+
+    if (data?.username) {
+      localStorage.setItem("travelmap_username", data.username);
+    }
+  } catch (err) {
+    console.error("Error inesperado cargando profile:", err);
+    setProfile(null);
+  }
+}
 
   useEffect(() => {
+    let isMounted = true;
 
-    async function loadUser() {
-
+    async function initAuth() {
       try {
-
-        const { data, error } = await supabase.auth.getUser();
+        const { data, error } = await supabase.auth.getSession();
 
         if (error) {
-          console.error("Error obteniendo usuario:", error);
-          setLoading(false);
-          return;
+          console.error("Error obteniendo sesión:", error);
         }
 
-        const currentUser = data?.user ?? null;
+        const currentUser = data?.session?.user ?? null;
+
+        if (!isMounted) return;
 
         setUser(currentUser);
 
+        // La sesión ya está resuelta aquí
+        setLoading(false);
+
+        // El profile se carga después, sin bloquear toda la app
         if (currentUser) {
-          await loadProfile(currentUser);
+          loadProfile(currentUser);
+        } else {
+          setProfile(null);
         }
-
       } catch (err) {
+        console.error("Error inicializando auth:", err);
 
-        console.error("Error cargando usuario:", err);
+        if (!isMounted) return;
 
+        setUser(null);
+        setProfile(null);
+        setLoading(false);
       }
-
-      setLoading(false);
-
     }
 
-    loadUser();
-
-    // -----------------------------------------
-    // ESCUCHAR CAMBIOS DE AUTH
-    // -----------------------------------------
+    initAuth();
 
     const { data: listener } = supabase.auth.onAuthStateChange(
       async (_event, session) => {
+        if (!isMounted) return;
 
         const currentUser = session?.user ?? null;
 
         setUser(currentUser);
 
-
-
         if (currentUser) {
-          await loadProfile(currentUser);
-         
+          loadProfile(currentUser);
         } else {
           setProfile(null);
+          localStorage.removeItem("travelmap_username");
         }
-
       }
     );
 
     return () => {
+      isMounted = false;
       listener.subscription.unsubscribe();
     };
-
   }, []);
 
   return (
@@ -125,7 +106,6 @@ export function AuthProvider({ children }) {
       {children}
     </AuthContext.Provider>
   );
-
 }
 
 export function useAuth() {
