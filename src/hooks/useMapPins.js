@@ -1,9 +1,10 @@
 import mapboxgl from "mapbox-gl";
 import { getPlaces } from "../services/placesService";
+import { useRef } from "react";
 
 export function useMapPins(map, navigate) {
 
-  const markers = [];
+  const markersRef = useRef([]);
 
   function createPin(place) {
 
@@ -11,7 +12,7 @@ export function useMapPins(map, navigate) {
       .setLngLat([place.lng, place.lat])
       .addTo(map);
 
-    markers.push(marker);
+    markersRef.current.push(marker);
 
     const popup = new mapboxgl.Popup({
       offset: 25,
@@ -43,9 +44,8 @@ export function useMapPins(map, navigate) {
 
   function clearPins() {
 
-    markers.forEach(marker => marker.remove());
-
-    markers.length = 0;
+    markersRef.current.forEach(marker => marker.remove());
+    markersRef.current = [];
 
   }
 
