@@ -14,12 +14,11 @@ const TravelDomeGallery = ({ photos, placeName = "viaje" }) => {
         fit={0.8}
         minRadius={600}
         maxVerticalRotationDeg={0}
-        segments={34}
+        segmentsX={15}
+        segmentsY={20}
         dragDampening={2}
         grayscale={false}
         overlayBlurColor="#ddebff"
-        openedImageWidth="320px"
-        openedImageHeight="420px"
         imageBorderRadius="24px"
         openedImageBorderRadius="24px"
       />

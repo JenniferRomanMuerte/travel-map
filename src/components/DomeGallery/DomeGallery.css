@@ -79,16 +79,15 @@ main.sphere-main {
   transform-origin: 50% 50%;
   backface-visibility: hidden;
   transition: transform 300ms;
-  transform: rotateY(calc(var(--rot-y) * (var(--offset-x) + ((var(--item-size-x) - 1) / 2)) + var(--rot-y-delta, 0deg)))
-    rotateX(calc(var(--rot-x) * (var(--offset-y) - ((var(--item-size-y) - 1) / 2)) + var(--rot-x-delta, 0deg)))
-    translateZ(var(--radius));
+  transform: rotateY(calc(var(--rot-y) * (var(--offset-x) + ((var(--item-size-x) - 1) / 2)) + var(--rot-y-delta, 0deg))) rotateX(calc(var(--rot-x) * (var(--offset-y) - ((var(--item-size-y) - 1) / 2)) + var(--rot-x-delta, 0deg))) translateZ(var(--radius));
 }
 
 .item__image {
   position: absolute;
   display: block;
-  inset: 10px;
+  inset: 15px;
   border-radius: var(--tile-radius, 12px);
+  box-shadow: 2px 2px 10px white;
   background: transparent;
   overflow: hidden;
   backface-visibility: hidden;
@@ -112,6 +111,7 @@ main.sphere-main {
   pointer-events: none;
   backface-visibility: hidden;
   filter: var(--image-filter, none);
+
 }
 
 .viewer {
@@ -126,17 +126,11 @@ main.sphere-main {
 }
 
 .viewer .frame {
-  height: 100%;
-  aspect-ratio: 1;
+  position: absolute;
+  inset: 10%;
   border-radius: var(--enlarge-radius, 32px);
-  display: flex;
-}
-
-@media (max-aspect-ratio: 1/1) {
-  .viewer .frame {
-    height: auto;
-    width: 100%;
-  }
+  pointer-events: none;
+  opacity: 0;
 }
 
 .viewer .scrim {
@@ -160,18 +154,18 @@ main.sphere-main {
   z-index: 30;
   border-radius: var(--enlarge-radius, 32px);
   overflow: hidden;
-  transition:
-    transform 500ms ease,
-    opacity 500ms ease;
   transform-origin: top left;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+  background: transparent;
+  box-shadow: 0 8px 22px rgba(255, 255, 255, 0.12), 0 14px 34px rgba(0, 0, 0, 0.22);
 }
 
 .viewer .enlarge img {
   width: 100%;
   height: 100%;
-  object-fit: cover;
+  object-fit: contain;
+  object-position: center;
   filter: var(--image-filter, none);
+  display: block;
 }
 
 .sphere-root .enlarge-closing img {

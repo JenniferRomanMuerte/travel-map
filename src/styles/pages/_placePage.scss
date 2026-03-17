@@ -6,9 +6,9 @@
   background:
     linear-gradient(
       180deg,
-      rgba(221, 235, 255, 0.95) 0%,
+      rgba(75, 124, 192, 0.95) 0%,
       rgba(127, 174, 232, 0.38) 40%,
-      rgba(221, 235, 255, 0.92) 100%
+      rgba(75, 124, 192,  0.92) 100%
     );
   color: var.$color-blue-950;
 
@@ -51,8 +51,8 @@
     background: linear-gradient(
       90deg,
       var.$color-blue-950 0%,
-      var.$color-blue-900 45%,
-      var.$color-blue-600 100%
+      var.$color-blue-600 65%,
+      var.$color-blue-900 80%
     );
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;

@@ -8,7 +8,8 @@ const DEFAULTS = {
   maxVerticalRotationDeg: 5,
   dragSensitivity: 20,
   enlargeTransitionMs: 300,
-  segments: 35
+  segmentsX: 18,
+  segmentsY: 5
 };
 
 const clamp = (v, min, max) => Math.min(Math.max(v, min), max);
@@ -23,8 +24,10 @@ const getDataNumber = (el, name, fallback) => {
   return Number.isFinite(n) ? n : fallback;
 };
 
-function buildItems(pool, seg) {
-  const xCols = Array.from({ length: seg }, (_, i) => -37 + i * 2);
+function buildItems(pool, segmentsX) {
+  const startX = -(segmentsX - 1);
+  const xCols = Array.from({ length: segmentsX }, (_, i) => startX + i * 2);
+
   const evenYs = [-4, -2, 0, 2, 4];
   const oddYs = [-3, -1, 1, 3, 5];
 
@@ -72,10 +75,13 @@ function buildItems(pool, seg) {
   }));
 }
 
-function computeItemBaseRotation(offsetX, offsetY, sizeX, sizeY, segments) {
-  const unit = 360 / segments / 2;
-  const rotateY = unit * (offsetX + (sizeX - 1) / 2);
-  const rotateX = unit * (offsetY - (sizeY - 1) / 2);
+function computeItemBaseRotation(offsetX, offsetY, sizeX, sizeY, segmentsX, segmentsY) {
+  const unitY = 360 / segmentsX / 2;
+  const unitX = 360 / segmentsY / 2;
+
+  const rotateY = unitY * (offsetX + (sizeX - 1) / 2);
+  const rotateX = unitX * (offsetY - (sizeY - 1) / 2);
+
   return { rotateX, rotateY };
 }
 
@@ -90,10 +96,11 @@ export default function DomeGallery({
   maxVerticalRotationDeg = DEFAULTS.maxVerticalRotationDeg,
   dragSensitivity = DEFAULTS.dragSensitivity,
   enlargeTransitionMs = DEFAULTS.enlargeTransitionMs,
-  segments = DEFAULTS.segments,
+  segmentsX = DEFAULTS.segmentsX,
+  segmentsY = DEFAULTS.segmentsY,
   dragDampening = 2,
-  openedImageWidth = '250px',
-  openedImageHeight = '350px',
+  openedImageWidth = null,
+  openedImageHeight = null,
   imageBorderRadius = '30px',
   openedImageBorderRadius = '30px',
   grayscale = false
@@ -130,7 +137,7 @@ export default function DomeGallery({
     document.body.classList.remove('dg-scroll-lock');
   }, []);
 
-  const items = useMemo(() => buildItems(images, segments), [images, segments]);
+  const items = useMemo(() => buildItems(images, segmentsX), [images, segmentsX]);
 
   const applyTransform = (xDeg, yDeg) => {
     const el = sphereRef.current;
@@ -421,118 +428,128 @@ export default function DomeGallery({
   }, [enlargeTransitionMs, unlockScroll]);
 
   const openItemFromElement = useCallback(
-    el => {
-      if (openingRef.current) return;
-      openingRef.current = true;
-      openStartedAtRef.current = performance.now();
-      lockScroll();
-      const parent = el.parentElement;
-      focusedElRef.current = el;
-      el.setAttribute('data-focused', 'true');
-      const offsetX = getDataNumber(parent, 'offsetX', 0);
-      const offsetY = getDataNumber(parent, 'offsetY', 0);
-      const sizeX = getDataNumber(parent, 'sizeX', 2);
-      const sizeY = getDataNumber(parent, 'sizeY', 2);
-      const parentRot = computeItemBaseRotation(offsetX, offsetY, sizeX, sizeY, segments);
-      const parentY = normalizeAngle(parentRot.rotateY);
-      const globalY = normalizeAngle(rotationRef.current.y);
-      let rotY = -(parentY + globalY) % 360;
-      if (rotY < -180) rotY += 360;
-      const rotX = -parentRot.rotateX - rotationRef.current.x;
-      parent.style.setProperty('--rot-y-delta', `${rotY}deg`);
-      parent.style.setProperty('--rot-x-delta', `${rotX}deg`);
-      const refDiv = document.createElement('div');
-      refDiv.className = 'item__image item__image--reference';
-      refDiv.style.opacity = '0';
-      refDiv.style.transform = `rotateX(${-parentRot.rotateX}deg) rotateY(${-parentRot.rotateY}deg)`;
-      parent.appendChild(refDiv);
+  el => {
+    if (openingRef.current) return;
+    openingRef.current = true;
+    openStartedAtRef.current = performance.now();
+    lockScroll();
 
-      void refDiv.offsetHeight;
+    const parent = el.parentElement;
+    focusedElRef.current = el;
+    el.setAttribute('data-focused', 'true');
 
-      const tileR = refDiv.getBoundingClientRect();
-      const mainR = mainRef.current?.getBoundingClientRect();
-      const frameR = frameRef.current?.getBoundingClientRect();
+    const offsetX = getDataNumber(parent, 'offsetX', 0);
+    const offsetY = getDataNumber(parent, 'offsetY', 0);
+    const sizeX = getDataNumber(parent, 'sizeX', 2);
+    const sizeY = getDataNumber(parent, 'sizeY', 2);
 
-      if (!mainR || !frameR || tileR.width <= 0 || tileR.height <= 0) {
-        openingRef.current = false;
-        focusedElRef.current = null;
-        parent.removeChild(refDiv);
-        unlockScroll();
-        return;
+    const parentRot = computeItemBaseRotation(offsetX, offsetY, sizeX, sizeY, segmentsX, segmentsY);
+    const parentY = normalizeAngle(parentRot.rotateY);
+    const globalY = normalizeAngle(rotationRef.current.y);
+
+    let rotY = -(parentY + globalY) % 360;
+    if (rotY < -180) rotY += 360;
+
+    const rotX = -parentRot.rotateX - rotationRef.current.x;
+
+    parent.style.setProperty('--rot-y-delta', `${rotY}deg`);
+    parent.style.setProperty('--rot-x-delta', `${rotX}deg`);
+
+    const refDiv = document.createElement('div');
+    refDiv.className = 'item__image item__image--reference';
+    refDiv.style.opacity = '0';
+    refDiv.style.transform = `rotateX(${-parentRot.rotateX}deg) rotateY(${-parentRot.rotateY}deg)`;
+    parent.appendChild(refDiv);
+
+    void refDiv.offsetHeight;
+
+    const tileR = refDiv.getBoundingClientRect();
+    const mainR = mainRef.current?.getBoundingClientRect();
+    const viewerR = viewerRef.current?.getBoundingClientRect();
+
+    if (!mainR || !viewerR || tileR.width <= 0 || tileR.height <= 0) {
+      openingRef.current = false;
+      focusedElRef.current = null;
+      parent.removeChild(refDiv);
+      unlockScroll();
+      return;
+    }
+
+    originalTilePositionRef.current = {
+      left: tileR.left,
+      top: tileR.top,
+      width: tileR.width,
+      height: tileR.height
+    };
+
+    el.style.visibility = 'hidden';
+    el.style.zIndex = 0;
+
+    const overlay = document.createElement('div');
+    overlay.className = 'enlarge';
+    overlay.style.position = 'absolute';
+    overlay.style.opacity = '0';
+    overlay.style.zIndex = '30';
+    overlay.style.willChange = 'transform, opacity, left, top, width, height';
+    overlay.style.transformOrigin = 'top left';
+    overlay.style.transition = `
+      transform ${enlargeTransitionMs}ms ease,
+      opacity ${enlargeTransitionMs}ms ease,
+      left ${enlargeTransitionMs}ms ease,
+      top ${enlargeTransitionMs}ms ease,
+      width ${enlargeTransitionMs}ms ease,
+      height ${enlargeTransitionMs}ms ease
+    `;
+
+    const rawSrc = parent.dataset.src || el.querySelector('img')?.src || '';
+    const img = document.createElement('img');
+    img.src = rawSrc;
+    overlay.appendChild(img);
+    viewerRef.current.appendChild(overlay);
+
+    img.onload = () => {
+      const naturalW = img.naturalWidth || tileR.width;
+      const naturalH = img.naturalHeight || tileR.height;
+
+      const maxW = viewerR.width * 0.82;
+      const maxH = viewerR.height * 0.82;
+      const ratio = naturalW / naturalH;
+
+      let finalW = maxW;
+      let finalH = finalW / ratio;
+
+      if (finalH > maxH) {
+        finalH = maxH;
+        finalW = finalH * ratio;
       }
 
-      originalTilePositionRef.current = { left: tileR.left, top: tileR.top, width: tileR.width, height: tileR.height };
-      el.style.visibility = 'hidden';
-      el.style.zIndex = 0;
-      const overlay = document.createElement('div');
-      overlay.className = 'enlarge';
-      overlay.style.position = 'absolute';
-      overlay.style.left = frameR.left - mainR.left + 'px';
-      overlay.style.top = frameR.top - mainR.top + 'px';
-      overlay.style.width = frameR.width + 'px';
-      overlay.style.height = frameR.height + 'px';
-      overlay.style.opacity = '0';
-      overlay.style.zIndex = '30';
-      overlay.style.willChange = 'transform, opacity';
-      overlay.style.transformOrigin = 'top left';
-      overlay.style.transition = `transform ${enlargeTransitionMs}ms ease, opacity ${enlargeTransitionMs}ms ease`;
-      const rawSrc = parent.dataset.src || el.querySelector('img')?.src || '';
-      const img = document.createElement('img');
-      img.src = rawSrc;
-      overlay.appendChild(img);
-      viewerRef.current.appendChild(overlay);
-      const tx0 = tileR.left - frameR.left;
-      const ty0 = tileR.top - frameR.top;
-      const sx0 = tileR.width / frameR.width;
-      const sy0 = tileR.height / frameR.height;
+      const finalLeft = (viewerR.left - mainR.left) + (viewerR.width - finalW) / 2;
+      const finalTop = (viewerR.top - mainR.top) + (viewerR.height - finalH) / 2;
+
+      overlay.style.left = `${finalLeft}px`;
+      overlay.style.top = `${finalTop}px`;
+      overlay.style.width = `${finalW}px`;
+      overlay.style.height = `${finalH}px`;
+
+      const tx0 = tileR.left - (mainR.left + finalLeft);
+      const ty0 = tileR.top - (mainR.top + finalTop);
+      const sx0 = tileR.width / finalW;
+      const sy0 = tileR.height / finalH;
 
       const validSx0 = isFinite(sx0) && sx0 > 0 ? sx0 : 1;
       const validSy0 = isFinite(sy0) && sy0 > 0 ? sy0 : 1;
 
       overlay.style.transform = `translate(${tx0}px, ${ty0}px) scale(${validSx0}, ${validSy0})`;
 
-      setTimeout(() => {
-        if (!overlay.parentElement) return;
+      requestAnimationFrame(() => {
         overlay.style.opacity = '1';
         overlay.style.transform = 'translate(0px, 0px) scale(1, 1)';
         rootRef.current?.setAttribute('data-enlarging', 'true');
-      }, 16);
-
-      const wantsResize = openedImageWidth || openedImageHeight;
-      if (wantsResize) {
-        const onFirstEnd = ev => {
-          if (ev.propertyName !== 'transform') return;
-          overlay.removeEventListener('transitionend', onFirstEnd);
-          const prevTransition = overlay.style.transition;
-          overlay.style.transition = 'none';
-          const tempWidth = openedImageWidth || `${frameR.width}px`;
-          const tempHeight = openedImageHeight || `${frameR.height}px`;
-          overlay.style.width = tempWidth;
-          overlay.style.height = tempHeight;
-          const newRect = overlay.getBoundingClientRect();
-          overlay.style.width = frameR.width + 'px';
-          overlay.style.height = frameR.height + 'px';
-          void overlay.offsetWidth;
-          overlay.style.transition = `left ${enlargeTransitionMs}ms ease, top ${enlargeTransitionMs}ms ease, width ${enlargeTransitionMs}ms ease, height ${enlargeTransitionMs}ms ease`;
-          const centeredLeft = frameR.left - mainR.left + (frameR.width - newRect.width) / 2;
-          const centeredTop = frameR.top - mainR.top + (frameR.height - newRect.height) / 2;
-          requestAnimationFrame(() => {
-            overlay.style.left = `${centeredLeft}px`;
-            overlay.style.top = `${centeredTop}px`;
-            overlay.style.width = tempWidth;
-            overlay.style.height = tempHeight;
-          });
-          const cleanupSecond = () => {
-            overlay.removeEventListener('transitionend', cleanupSecond);
-            overlay.style.transition = prevTransition;
-          };
-          overlay.addEventListener('transitionend', cleanupSecond, { once: true });
-        };
-        overlay.addEventListener('transitionend', onFirstEnd);
-      }
-    },
-    [enlargeTransitionMs, lockScroll, openedImageHeight, openedImageWidth, segments, unlockScroll]
-  );
+      });
+    };
+  },
+  [enlargeTransitionMs, lockScroll, segmentsX, segmentsY, unlockScroll]
+);
 
   const onTileClick = useCallback(
     e => {
@@ -568,8 +585,8 @@ export default function DomeGallery({
       ref={rootRef}
       className="sphere-root"
       style={{
-        ['--segments-x']: segments,
-        ['--segments-y']: segments,
+        ['--segments-x']: segmentsX,
+        ['--segments-y']: segmentsY,
         ['--overlay-blur-color']: overlayBlurColor,
         ['--tile-radius']: imageBorderRadius,
         ['--enlarge-radius']: openedImageBorderRadius,
