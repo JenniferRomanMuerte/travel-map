@@ -2,13 +2,12 @@
 
 .travel-dome-gallery {
   width: 100%;
-  height: 32rem;
-  border-radius: var.$radius-lg;
-  overflow: hidden;
-  background: rgba(255, 255, 255, 0.28);
-  box-shadow:
-    0 14px 20px rgba(8, 18, 38, 0.2),
-    0 4px 10px rgba(8, 18, 38, 0.1);
+  height: 42rem;
+  border-radius: 0;
+  overflow: visible;
+  background: transparent;
+  box-shadow: none;
+
 
   .sphere-root {
     width: 100%;
@@ -18,12 +17,12 @@
 
 @media (min-width: var.$bp-tablet) {
   .travel-dome-gallery {
-    height: 38rem;
+    height: 48rem;
   }
 }
 
 @media (min-width: var.$bp-desktop) {
   .travel-dome-gallery {
-    height: 42rem;
+    height: 52rem;
   }
 }
