@@ -1,7 +1,9 @@
 @use './base/reset';
 @use './pages/home';
+@use './pages/placePage';
 @use './components/globeMap';
 @use './components/travelFormModal';
 @use './components/navBar';
 @use './components/authModal';
 @use './components/authForm';
+@use './components/travelDomeGallery';

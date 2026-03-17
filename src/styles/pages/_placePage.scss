@@ -1,0 +1,201 @@
+@use "../base/variables" as var;
+
+.travel-page {
+  min-height: 100vh;
+  padding: 6.5rem 1rem 2rem;
+  background:
+    linear-gradient(
+      180deg,
+      rgba(221, 235, 255, 0.95) 0%,
+      rgba(127, 174, 232, 0.38) 40%,
+      rgba(221, 235, 255, 0.92) 100%
+    );
+  color: var.$color-blue-950;
+
+  &__container {
+    width: min(100%, 72rem);
+    margin: 0 auto;
+  }
+
+  &__back {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    margin-bottom: 1.4rem;
+    color: var.$color-blue-900;
+    text-decoration: none;
+    font-family: var.$font-base;
+    font-size: 0.95rem;
+    font-weight: 600;
+    transition:
+      transform var.$transition-fast,
+      opacity var.$transition-fast;
+
+    &:hover {
+      transform: translateX(-2px);
+      opacity: 0.85;
+    }
+  }
+
+  &__header {
+    margin-bottom: 1.8rem;
+  }
+
+  &__title {
+    margin: 0;
+    font-family: var.$font-title;
+    font-size: clamp(2rem, 8vw, 3.4rem);
+    line-height: 1.15;
+    letter-spacing: 0.08rem;
+
+    background: linear-gradient(
+      90deg,
+      var.$color-blue-950 0%,
+      var.$color-blue-900 45%,
+      var.$color-blue-600 100%
+    );
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  &__date {
+    margin: 0.7rem 0 0;
+    color: var.$color-blue-900;
+    font-family: var.$font-base;
+    font-size: 1rem;
+    font-weight: 600;
+  }
+
+  &__notes {
+    margin-top: 1.3rem;
+    padding: 1rem;
+    border: 1px solid rgba(255, 255, 255, 0.72);
+    border-radius: var.$radius-md;
+    background: rgba(255, 255, 255, 0.62);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    box-shadow: 0 12px 28px rgba(8, 18, 38, 0.08);
+  }
+
+  &__notes-title {
+    margin: 0 0 0.5rem;
+    font-family: var.$font-base;
+    font-size: 1rem;
+    font-weight: 700;
+    color: var.$color-blue-900;
+  }
+
+  &__notes-text {
+    margin: 0;
+    font-family: var.$font-base;
+    font-size: 0.98rem;
+    line-height: 1.65;
+    color: var.$color-blue-950;
+    white-space: pre-line;
+  }
+
+  &__section {
+    margin-top: 5rem;
+  }
+
+  &__section-title {
+    margin: 0 0 1rem;
+    font-family: var.$font-title;
+    font-size: clamp(1.5rem, 5vw, 2.1rem);
+    line-height: 1.2;
+    letter-spacing: 0.06rem;
+
+    background: linear-gradient(
+      90deg,
+      var.$color-blue-950 0%,
+      var.$color-blue-900 55%,
+      var.$color-blue-600 100%
+    );
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  &__empty {
+    margin: 0;
+    padding: 1rem;
+    border: 1px dashed rgba(40, 97, 177, 0.22);
+    border-radius: var.$radius-md;
+    background: rgba(255, 255, 255, 0.45);
+    color: var.$color-blue-900;
+    font-family: var.$font-base;
+    font-size: 0.96rem;
+  }
+
+  &__gallery {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+
+  &__image {
+    display: block;
+    width: 100%;
+    aspect-ratio: 4 / 3;
+    object-fit: cover;
+    border-radius: var.$radius-md;
+    background: rgba(255, 255, 255, 0.7);
+    box-shadow:
+      0 14px 20px rgba(8, 18, 38, 0.36),
+      0 4px 10px rgba(8, 18, 38, 0.18);
+    transition:
+      transform var.$transition-fast,
+      box-shadow var.$transition-fast;
+
+    &:hover {
+      transform: translateY(-3px);
+      box-shadow:
+        0 18px 36px rgba(8, 18, 38, 0.2),
+        0 6px 14px rgba(8, 18, 38, 0.1);
+    }
+  }
+
+  &__videos {
+    padding-top: 1rem;
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+
+  &__video {
+    display: block;
+    width: 100%;
+    border-radius: var.$radius-md;
+
+    background: rgba(255, 255, 255, 0.7);
+    box-shadow:
+      0 14px 20px rgba(8, 18, 38, 0.36),
+      0 4px 10px rgba(8, 18, 38, 0.18);
+    overflow: hidden;
+  }
+}
+
+@media (min-width: var.$bp-tablet) {
+  .travel-page {
+    padding: 7.5rem 1.5rem 3rem;
+
+    &__gallery {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 1.2rem;
+    }
+
+    &__videos {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 1.2rem;
+    }
+  }
+}
+
+@media (min-width: var.$bp-desktop) {
+  .travel-page {
+    padding: 8rem 2rem 4rem;
+
+    &__gallery {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+  }
+}

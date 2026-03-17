@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
+import TravelDomeGallery from "../components/DomeGallery/TravelDomeGallery";
 import { getPlaceById } from "../services/placesService";
 import { getMediaByPlace } from "../services/mediaService";
 
@@ -71,47 +72,59 @@ const PlacePage = () => {
     : "Fecha no especificada";
 
   return (
-    <div>
-      <h1>
-        {place.city}, {place.country}
-      </h1>
+    <div className="travel-page">
+      <div className="travel-page__container">
+        <Link to="/" className="travel-page__back">
+          ← Volver al mapa
+        </Link>
 
-      <h3>{formattedDate}</h3>
+        <header className="travel-page__header">
+          <h1 className="travel-page__title">
+            {place.city}, {place.country}
+          </h1>
 
-      {place.notes && <p>{place.notes}</p>}
+          <p className="travel-page__date">{formattedDate}</p>
 
-      <Link to="/">← Volver al mapa</Link>
+          {place.notes && (
+            <div className="travel-page__notes">
+              <h2 className="travel-page__notes-title">Notas</h2>
+              <p className="travel-page__notes-text">{place.notes}</p>
+            </div>
+          )}
+        </header>
 
-      <h2>Fotos</h2>
+        <section className="travel-page__section">
+          <h2 className="travel-page__section-title">Fotos</h2>
 
-      {photos.length === 0 && <p>No hay fotos</p>}
+          {photos.length === 0 ? (
+            <p className="travel-page__empty">No hay fotos</p>
+          ) : (
+            <TravelDomeGallery
+              photos={photos}
+              placeName={place.city || "viaje"}
+            />
+          )}
+        </section>
 
-      <div>
-        {photos.map((photo) => (
-          <img
-            key={photo.id}
-            src={photo.url}
-            loading="lazy"
-            alt={`Foto de ${place.city || "viaje"}`}
-            width="300"
-          />
-        ))}
-      </div>
+        <section className="travel-page__section">
+          <h2 className="travel-page__section-title">Vídeos</h2>
 
-      <h2>Vídeos</h2>
-
-      {videos.length === 0 && <p>No hay vídeos</p>}
-
-      <div>
-        {videos.map((video) => (
-          <video
-            key={video.id}
-            src={video.url}
-            controls
-            preload="metadata"
-            width="400"
-          />
-        ))}
+          {videos.length === 0 ? (
+            <p className="travel-page__empty">No hay vídeos</p>
+          ) : (
+            <div className="travel-page__videos">
+              {videos.map((video) => (
+                <video
+                  className="travel-page__video"
+                  key={video.id}
+                  src={video.url}
+                  controls
+                  preload="metadata"
+                />
+              ))}
+            </div>
+          )}
+        </section>
       </div>
     </div>
   );
