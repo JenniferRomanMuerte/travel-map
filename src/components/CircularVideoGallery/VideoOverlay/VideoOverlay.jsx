@@ -18,13 +18,15 @@ const VideoOverlay = ({ videoUrl, title, onClose }) => {
 
         {title && <h3 className="video-overlay__title">{title}</h3>}
 
-        <video
-          className="video-overlay__player"
-          src={videoUrl}
-          controls
-          autoPlay
-          playsInline
-        />
+        <div className="video-overlay__media">
+          <video
+            className="video-overlay__player"
+            src={videoUrl}
+            controls
+            autoPlay
+            playsInline
+          />
+        </div>
       </div>
     </div>
   );
