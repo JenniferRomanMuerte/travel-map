@@ -98,6 +98,7 @@ class Media {
     geometry,
     gl,
     image,
+    data,
     index,
     length,
     renderer,
@@ -108,12 +109,13 @@ class Media {
     bend,
     textColor,
     borderRadius = 0,
-    font
+    font,
   }) {
     this.extra = 0;
     this.geometry = geometry;
     this.gl = gl;
     this.image = image;
+    this.data = data;
     this.index = index;
     this.length = length;
     this.renderer = renderer;
@@ -291,11 +293,13 @@ class App {
       borderRadius = 0,
       font = 'bold 30px Figtree',
       scrollSpeed = 2,
-      scrollEase = 0.05
+      scrollEase = 0.05,
+      onItemClick,
     } = {}
   ) {
     document.documentElement.classList.remove('no-js');
     this.container = container;
+    this.onItemClick = onItemClick;
     this.scrollSpeed = scrollSpeed;
     this.scroll = { ease: scrollEase, current: 0, target: 0, last: 0 };
     this.onCheckDebounce = debounce(this.onCheck, 200);
@@ -354,6 +358,7 @@ class App {
         geometry: this.planeGeometry,
         gl: this.gl,
         image: data.image,
+        data,
         index,
         length: this.mediasImages.length,
         renderer: this.renderer,
@@ -364,14 +369,36 @@ class App {
         bend,
         textColor,
         borderRadius,
-        font
+        font,
       });
     });
   }
+
+  handleClick() {
+    if (!this.medias || !this.onItemClick) return;
+
+    let closestMedia = null;
+    let minDistance = Infinity;
+
+    this.medias.forEach((media) => {
+      const distance = Math.abs(media.plane.position.x);
+
+      if (distance < minDistance) {
+        minDistance = distance;
+        closestMedia = media;
+      }
+    });
+
+    if (closestMedia) {
+      this.onItemClick(closestMedia.data);
+    }
+  }
+
   onTouchDown(e) {
     this.isDown = true;
     this.scroll.position = this.scroll.current;
     this.start = e.touches ? e.touches[0].clientX : e.clientX;
+    this.dragStart = this.start;
   }
   onTouchMove(e) {
     if (!this.isDown) return;
@@ -379,9 +406,18 @@ class App {
     const distance = (this.start - x) * (this.scrollSpeed * 0.025);
     this.scroll.target = this.scroll.position + distance;
   }
-  onTouchUp() {
+  onTouchUp(e) {
+    if (!this.isDown) return;
+
+    const endX = e.changedTouches ? e.changedTouches[0].clientX : e.clientX;
+    const dragDistance = Math.abs(endX - this.dragStart);
+
     this.isDown = false;
     this.onCheck();
+
+    if (dragDistance < 10) {
+      this.handleClick();
+    }
   }
   onWheel(e) {
     const delta = e.deltaY || e.wheelDelta || e.detail;
@@ -458,18 +494,28 @@ class App {
 export default function CircularGallery({
   items,
   bend = 3,
-  textColor = '#ffffff',
+  textColor = "#ffffff",
   borderRadius = 0.05,
-  font = 'bold 30px Figtree',
+  font = "bold 30px Figtree",
   scrollSpeed = 2,
-  scrollEase = 0.05
+  scrollEase = 0.05,
+  onItemClick,
 }) {
   const containerRef = useRef(null);
   useEffect(() => {
-    const app = new App(containerRef.current, { items, bend, textColor, borderRadius, font, scrollSpeed, scrollEase });
+    const app = new App(containerRef.current, {
+      items,
+      bend,
+      textColor,
+      borderRadius,
+      font,
+      scrollSpeed,
+      scrollEase,
+      onItemClick,
+    });
     return () => {
       app.destroy();
     };
-  }, [items, bend, textColor, borderRadius, font, scrollSpeed, scrollEase]);
+  }, [items, bend, textColor, borderRadius, font, scrollSpeed, scrollEase, onItemClick]);
   return <div className="circular-gallery" ref={containerRef} />;
 }

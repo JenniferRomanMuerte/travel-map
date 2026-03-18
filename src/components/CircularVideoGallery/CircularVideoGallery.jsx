@@ -78,6 +78,7 @@ const CircularVideoGallery = ({ videos }) => {
             borderRadius={0.05}
             scrollSpeed={2}
             scrollEase={0.05}
+            onItemClick={(item) => setSelectedVideo(item)}
           />
         </div>
       </section>
