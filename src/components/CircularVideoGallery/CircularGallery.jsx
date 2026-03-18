@@ -374,23 +374,30 @@ class App {
     });
   }
 
-  handleClick() {
-    if (!this.medias || !this.onItemClick) return;
+  handleClick(clientX) {
+    if (!this.medias || !this.medias.length || !this.onItemClick) return;
 
-    let closestMedia = null;
+    const rect = this.container.getBoundingClientRect();
+    const clickX = clientX - rect.left;
+
+    let clickedMedia = null;
     let minDistance = Infinity;
 
     this.medias.forEach((media) => {
-      const distance = Math.abs(media.plane.position.x);
+      const mediaScreenX =
+        ((media.plane.position.x + this.viewport.width / 2) / this.viewport.width) *
+        this.screen.width;
+
+      const distance = Math.abs(clickX - mediaScreenX);
 
       if (distance < minDistance) {
         minDistance = distance;
-        closestMedia = media;
+        clickedMedia = media;
       }
     });
 
-    if (closestMedia) {
-      this.onItemClick(closestMedia.data);
+    if (clickedMedia) {
+      this.onItemClick(clickedMedia.data);
     }
   }
 
@@ -416,7 +423,7 @@ class App {
     this.onCheck();
 
     if (dragDistance < 10) {
-      this.handleClick();
+      this.handleClick(endX);
     }
   }
   onWheel(e) {
