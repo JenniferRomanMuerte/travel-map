@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import TravelDomeGallery from "../components/DomeGallery/TravelDomeGallery";
+import CircularVideoGallery from "../components/CircularVideoGallery/CircularVideoGallery";
 import { getPlaceById } from "../services/placesService";
 import { getMediaByPlace } from "../services/mediaService";
 
@@ -112,17 +113,13 @@ const PlacePage = () => {
           {videos.length === 0 ? (
             <p className="travel-page__empty">No hay vídeos</p>
           ) : (
-            <div className="travel-page__videos">
-              {videos.map((video) => (
-                <video
-                  className="travel-page__video"
-                  key={video.id}
-                  src={video.url}
-                  controls
-                  preload="metadata"
-                />
-              ))}
-            </div>
+            <CircularVideoGallery
+              videos={videos.map((video) => ({
+                id: video.id,
+                url: video.url,
+                title: `${place.city}, ${place.country}`,
+              }))}
+            />
           )}
         </section>
       </div>

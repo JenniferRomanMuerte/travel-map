@@ -1,0 +1,13 @@
+.circular-video-gallery {
+  margin-top: 3rem;
+
+  &__title {
+    margin-bottom: 1.5rem;
+    text-align: center;
+  }
+
+  &__wrapper {
+    height: 600px;
+    position: relative;
+  }
+}

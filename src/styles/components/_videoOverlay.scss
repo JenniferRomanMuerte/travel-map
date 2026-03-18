@@ -1,0 +1,44 @@
+.video-overlay {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.82);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+  z-index: 9999;
+
+  &__content {
+    position: relative;
+    width: min(100%, 900px);
+    max-height: 90vh;
+    background: #111;
+    border-radius: 20px;
+    padding: 1.5rem;
+    box-shadow: 0 10px 35px rgba(255, 255, 255, 0.08);
+  }
+
+  &__close {
+    position: absolute;
+    top: 0.8rem;
+    right: 1rem;
+    border: none;
+    background: transparent;
+    color: white;
+    font-size: 2rem;
+    cursor: pointer;
+  }
+
+  &__title {
+    color: white;
+    margin-bottom: 1rem;
+    padding-right: 2rem;
+  }
+
+  &__player {
+    width: 100%;
+    max-height: 75vh;
+    border-radius: 14px;
+    display: block;
+  }
+}
