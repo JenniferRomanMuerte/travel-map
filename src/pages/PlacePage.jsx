@@ -75,16 +75,17 @@ const PlacePage = () => {
   return (
     <div className="travel-page">
       <div className="travel-page__container">
-        <Link to="/" className="travel-page__back">
-          ← Volver al mapa
-        </Link>
-
         <header className="travel-page__header">
           <h1 className="travel-page__title">
             {place.city}, {place.country}
           </h1>
 
-          <p className="travel-page__date">{formattedDate}</p>
+          <div className="travel-page__info">
+            <p className="travel-page__info-date">{formattedDate}</p>
+            <Link to="/" className="travel-page__info-back">
+              ← Volver al mapa
+            </Link>
+          </div>
 
           {place.notes && (
             <div className="travel-page__notes">
