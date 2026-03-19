@@ -26,9 +26,9 @@
     position: absolute;
     left: 0;
     top: 50%;
-    transform: translateY(-55%);
-    animation: travel-loader-move 2.6s ease-in-out infinite;
+    animation: travel-loader-move 2.8s linear infinite;
     filter: drop-shadow(0 6px 14px rgba(8, 16, 33, 0.35));
+    will-change: transform, opacity;
 
     &-image {
       display: block;
@@ -57,7 +57,7 @@
 
 @keyframes travel-loader-move {
   0% {
-    left: 0%;
+    transform: translate3d(0, -55%, 0) rotate(-6deg);
     opacity: 0.2;
   }
 
@@ -65,16 +65,25 @@
     opacity: 1;
   }
 
+  25% {
+    transform: translate3d(22vw, -72%, 0) rotate(-2deg);
+  }
+
   50% {
-    left: calc(50% - 65px);
+    transform: translate3d(45vw, -100%, 0) rotate(0deg);
     opacity: 1;
   }
 
+  75% {
+    transform: translate3d(67vw, -72%, 0) rotate(2deg);
+  }
+
   100% {
-    left: calc(100% - 130px);
+    transform: translate3d(calc(90vw - 130px), -55%, 0) rotate(6deg);
     opacity: 0.2;
   }
 }
+
 
 @keyframes shine {
   to {
