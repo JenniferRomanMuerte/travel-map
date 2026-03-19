@@ -3,7 +3,7 @@ import VideoOverlay from "./VideoOverlay/VideoOverlay";
 import CircularGallery from "./CircularGallery";
 
 
-const CircularVideoGallery = ({ videos }) => {
+const CircularVideoGallery = ({ videos, onReady }) => {
   const [selectedVideo, setSelectedVideo] = useState(null);
   const [galleryItems, setGalleryItems] = useState([]);
 
@@ -57,10 +57,14 @@ const CircularVideoGallery = ({ videos }) => {
       );
 
       setGalleryItems(items);
+
+      requestAnimationFrame(() => {
+        if (onReady) onReady();
+      });
     };
 
     buildGalleryItems();
-  }, [videos]);
+  }, [videos, onReady]);
 
   if (!videos || videos.length === 0) return null;
 
