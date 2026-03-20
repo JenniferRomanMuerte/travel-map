@@ -38,6 +38,13 @@ export function useMapbox(containerRef, onLongPress, navigate, user) {
     const mapPins = mapPinsManager(map, navigate);
     mapPinsRef.current = mapPins;
 
+    const clearPressTimer = () => {
+      if (pressTimerRef.current) {
+        clearTimeout(pressTimerRef.current);
+        pressTimerRef.current = null;
+      }
+    };
+
     map.on("load", async () => {
       isMapLoadedRef.current = true;
 
@@ -51,23 +58,46 @@ export function useMapbox(containerRef, onLongPress, navigate, user) {
     });
 
     map.on("touchstart", (e) => {
+      clearPressTimer();
+
+      if (!e.originalEvent || e.originalEvent.touches.length !== 1) {
+        return;
+      }
+
+      const lngLat = e.lngLat;
+
       pressTimerRef.current = setTimeout(() => {
-        onLongPressRef.current?.(e.lngLat);
+        onLongPressRef.current?.(lngLat);
+        pressTimerRef.current = null;
       }, 600);
     });
 
+    map.on("touchmove", () => {
+      clearPressTimer();
+    });
+
     map.on("touchend", () => {
-      if (pressTimerRef.current) {
-        clearTimeout(pressTimerRef.current);
-        pressTimerRef.current = null;
-      }
+      clearPressTimer();
+    });
+
+    map.on("dragstart", () => {
+      clearPressTimer();
+    });
+
+    map.on("zoomstart", () => {
+      clearPressTimer();
+    });
+
+    map.on("rotatestart", () => {
+      clearPressTimer();
+    });
+
+    map.on("pitchstart", () => {
+      clearPressTimer();
     });
 
     return () => {
-      if (pressTimerRef.current) {
-        clearTimeout(pressTimerRef.current);
-        pressTimerRef.current = null;
-      }
+      clearPressTimer();
 
       map.remove();
       mapRef.current = null;
