@@ -289,41 +289,54 @@ export default function DomeGallery({
       },
       onDrag: ({ event, last, velocity = [0, 0], direction = [0, 0], movement }) => {
         if (focusedElRef.current || !draggingRef.current || !startPosRef.current) return;
+
         const evt = event;
         const dxTotal = evt.clientX - startPosRef.current.x;
         const dyTotal = evt.clientY - startPosRef.current.y;
+
         if (!movedRef.current) {
           const dist2 = dxTotal * dxTotal + dyTotal * dyTotal;
           if (dist2 > 16) movedRef.current = true;
         }
+
         const nextX = clamp(
           startRotRef.current.x - dyTotal / dragSensitivity,
           -maxVerticalRotationDeg,
           maxVerticalRotationDeg
         );
         const nextY = wrapAngleSigned(startRotRef.current.y + dxTotal / dragSensitivity);
+
         if (rotationRef.current.x !== nextX || rotationRef.current.y !== nextY) {
           rotationRef.current = { x: nextX, y: nextY };
           applyTransform(nextX, nextY);
         }
+
         if (last) {
           draggingRef.current = false;
           let [vMagX, vMagY] = velocity;
           const [dirX, dirY] = direction;
           let vx = vMagX * dirX;
           let vy = vMagY * dirY;
+
           if (Math.abs(vx) < 0.001 && Math.abs(vy) < 0.001 && Array.isArray(movement)) {
             const [mx, my] = movement;
             vx = clamp((mx / dragSensitivity) * 0.02, -1.2, 1.2);
             vy = clamp((my / dragSensitivity) * 0.02, -1.2, 1.2);
           }
+
           if (Math.abs(vx) > 0.005 || Math.abs(vy) > 0.005) startInertia(vx, vy);
           if (movedRef.current) lastDragEndAt.current = performance.now();
           movedRef.current = false;
         }
       }
     },
-    { target: mainRef, eventOptions: { passive: true } }
+    {
+      target: mainRef,
+      eventOptions: { passive: true },
+      drag: {
+        axis: 'x'
+      }
+    }
   );
 
   useEffect(() => {
@@ -428,71 +441,71 @@ export default function DomeGallery({
   }, [enlargeTransitionMs, unlockScroll]);
 
   const openItemFromElement = useCallback(
-  el => {
-    if (openingRef.current) return;
-    openingRef.current = true;
-    openStartedAtRef.current = performance.now();
-    lockScroll();
+    el => {
+      if (openingRef.current) return;
+      openingRef.current = true;
+      openStartedAtRef.current = performance.now();
+      lockScroll();
 
-    const parent = el.parentElement;
-    focusedElRef.current = el;
-    el.setAttribute('data-focused', 'true');
+      const parent = el.parentElement;
+      focusedElRef.current = el;
+      el.setAttribute('data-focused', 'true');
 
-    const offsetX = getDataNumber(parent, 'offsetX', 0);
-    const offsetY = getDataNumber(parent, 'offsetY', 0);
-    const sizeX = getDataNumber(parent, 'sizeX', 2);
-    const sizeY = getDataNumber(parent, 'sizeY', 2);
+      const offsetX = getDataNumber(parent, 'offsetX', 0);
+      const offsetY = getDataNumber(parent, 'offsetY', 0);
+      const sizeX = getDataNumber(parent, 'sizeX', 2);
+      const sizeY = getDataNumber(parent, 'sizeY', 2);
 
-    const parentRot = computeItemBaseRotation(offsetX, offsetY, sizeX, sizeY, segmentsX, segmentsY);
-    const parentY = normalizeAngle(parentRot.rotateY);
-    const globalY = normalizeAngle(rotationRef.current.y);
+      const parentRot = computeItemBaseRotation(offsetX, offsetY, sizeX, sizeY, segmentsX, segmentsY);
+      const parentY = normalizeAngle(parentRot.rotateY);
+      const globalY = normalizeAngle(rotationRef.current.y);
 
-    let rotY = -(parentY + globalY) % 360;
-    if (rotY < -180) rotY += 360;
+      let rotY = -(parentY + globalY) % 360;
+      if (rotY < -180) rotY += 360;
 
-    const rotX = -parentRot.rotateX - rotationRef.current.x;
+      const rotX = -parentRot.rotateX - rotationRef.current.x;
 
-    parent.style.setProperty('--rot-y-delta', `${rotY}deg`);
-    parent.style.setProperty('--rot-x-delta', `${rotX}deg`);
+      parent.style.setProperty('--rot-y-delta', `${rotY}deg`);
+      parent.style.setProperty('--rot-x-delta', `${rotX}deg`);
 
-    const refDiv = document.createElement('div');
-    refDiv.className = 'item__image item__image--reference';
-    refDiv.style.opacity = '0';
-    refDiv.style.transform = `rotateX(${-parentRot.rotateX}deg) rotateY(${-parentRot.rotateY}deg)`;
-    parent.appendChild(refDiv);
+      const refDiv = document.createElement('div');
+      refDiv.className = 'item__image item__image--reference';
+      refDiv.style.opacity = '0';
+      refDiv.style.transform = `rotateX(${-parentRot.rotateX}deg) rotateY(${-parentRot.rotateY}deg)`;
+      parent.appendChild(refDiv);
 
-    void refDiv.offsetHeight;
+      void refDiv.offsetHeight;
 
-    const tileR = refDiv.getBoundingClientRect();
-    const mainR = mainRef.current?.getBoundingClientRect();
-    const viewerR = viewerRef.current?.getBoundingClientRect();
+      const tileR = refDiv.getBoundingClientRect();
+      const mainR = mainRef.current?.getBoundingClientRect();
+      const viewerR = viewerRef.current?.getBoundingClientRect();
 
-    if (!mainR || !viewerR || tileR.width <= 0 || tileR.height <= 0) {
-      openingRef.current = false;
-      focusedElRef.current = null;
-      parent.removeChild(refDiv);
-      unlockScroll();
-      return;
-    }
+      if (!mainR || !viewerR || tileR.width <= 0 || tileR.height <= 0) {
+        openingRef.current = false;
+        focusedElRef.current = null;
+        parent.removeChild(refDiv);
+        unlockScroll();
+        return;
+      }
 
-    originalTilePositionRef.current = {
-      left: tileR.left,
-      top: tileR.top,
-      width: tileR.width,
-      height: tileR.height
-    };
+      originalTilePositionRef.current = {
+        left: tileR.left,
+        top: tileR.top,
+        width: tileR.width,
+        height: tileR.height
+      };
 
-    el.style.visibility = 'hidden';
-    el.style.zIndex = 0;
+      el.style.visibility = 'hidden';
+      el.style.zIndex = 0;
 
-    const overlay = document.createElement('div');
-    overlay.className = 'enlarge';
-    overlay.style.position = 'absolute';
-    overlay.style.opacity = '0';
-    overlay.style.zIndex = '30';
-    overlay.style.willChange = 'transform, opacity, left, top, width, height';
-    overlay.style.transformOrigin = 'top left';
-    overlay.style.transition = `
+      const overlay = document.createElement('div');
+      overlay.className = 'enlarge';
+      overlay.style.position = 'absolute';
+      overlay.style.opacity = '0';
+      overlay.style.zIndex = '30';
+      overlay.style.willChange = 'transform, opacity, left, top, width, height';
+      overlay.style.transformOrigin = 'top left';
+      overlay.style.transition = `
       transform ${enlargeTransitionMs}ms ease,
       opacity ${enlargeTransitionMs}ms ease,
       left ${enlargeTransitionMs}ms ease,
@@ -501,55 +514,55 @@ export default function DomeGallery({
       height ${enlargeTransitionMs}ms ease
     `;
 
-    const rawSrc = parent.dataset.src || el.querySelector('img')?.src || '';
-    const img = document.createElement('img');
-    img.src = rawSrc;
-    overlay.appendChild(img);
-    viewerRef.current.appendChild(overlay);
+      const rawSrc = parent.dataset.src || el.querySelector('img')?.src || '';
+      const img = document.createElement('img');
+      img.src = rawSrc;
+      overlay.appendChild(img);
+      viewerRef.current.appendChild(overlay);
 
-    img.onload = () => {
-      const naturalW = img.naturalWidth || tileR.width;
-      const naturalH = img.naturalHeight || tileR.height;
+      img.onload = () => {
+        const naturalW = img.naturalWidth || tileR.width;
+        const naturalH = img.naturalHeight || tileR.height;
 
-      const maxW = viewerR.width * 0.82;
-      const maxH = viewerR.height * 0.82;
-      const ratio = naturalW / naturalH;
+        const maxW = viewerR.width * 0.82;
+        const maxH = viewerR.height * 0.82;
+        const ratio = naturalW / naturalH;
 
-      let finalW = maxW;
-      let finalH = finalW / ratio;
+        let finalW = maxW;
+        let finalH = finalW / ratio;
 
-      if (finalH > maxH) {
-        finalH = maxH;
-        finalW = finalH * ratio;
-      }
+        if (finalH > maxH) {
+          finalH = maxH;
+          finalW = finalH * ratio;
+        }
 
-      const finalLeft = (viewerR.left - mainR.left) + (viewerR.width - finalW) / 2;
-      const finalTop = (viewerR.top - mainR.top) + (viewerR.height - finalH) / 2;
+        const finalLeft = (viewerR.left - mainR.left) + (viewerR.width - finalW) / 2;
+        const finalTop = (viewerR.top - mainR.top) + (viewerR.height - finalH) / 2;
 
-      overlay.style.left = `${finalLeft}px`;
-      overlay.style.top = `${finalTop}px`;
-      overlay.style.width = `${finalW}px`;
-      overlay.style.height = `${finalH}px`;
+        overlay.style.left = `${finalLeft}px`;
+        overlay.style.top = `${finalTop}px`;
+        overlay.style.width = `${finalW}px`;
+        overlay.style.height = `${finalH}px`;
 
-      const tx0 = tileR.left - (mainR.left + finalLeft);
-      const ty0 = tileR.top - (mainR.top + finalTop);
-      const sx0 = tileR.width / finalW;
-      const sy0 = tileR.height / finalH;
+        const tx0 = tileR.left - (mainR.left + finalLeft);
+        const ty0 = tileR.top - (mainR.top + finalTop);
+        const sx0 = tileR.width / finalW;
+        const sy0 = tileR.height / finalH;
 
-      const validSx0 = isFinite(sx0) && sx0 > 0 ? sx0 : 1;
-      const validSy0 = isFinite(sy0) && sy0 > 0 ? sy0 : 1;
+        const validSx0 = isFinite(sx0) && sx0 > 0 ? sx0 : 1;
+        const validSy0 = isFinite(sy0) && sy0 > 0 ? sy0 : 1;
 
-      overlay.style.transform = `translate(${tx0}px, ${ty0}px) scale(${validSx0}, ${validSy0})`;
+        overlay.style.transform = `translate(${tx0}px, ${ty0}px) scale(${validSx0}, ${validSy0})`;
 
-      requestAnimationFrame(() => {
-        overlay.style.opacity = '1';
-        overlay.style.transform = 'translate(0px, 0px) scale(1, 1)';
-        rootRef.current?.setAttribute('data-enlarging', 'true');
-      });
-    };
-  },
-  [enlargeTransitionMs, lockScroll, segmentsX, segmentsY, unlockScroll]
-);
+        requestAnimationFrame(() => {
+          overlay.style.opacity = '1';
+          overlay.style.transform = 'translate(0px, 0px) scale(1, 1)';
+          rootRef.current?.setAttribute('data-enlarging', 'true');
+        });
+      };
+    },
+    [enlargeTransitionMs, lockScroll, segmentsX, segmentsY, unlockScroll]
+  );
 
   const onTileClick = useCallback(
     e => {
