@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Eye, EyeOff } from "lucide-react";
 import { supabase } from "../lib/supabase";
 
 const AuthForm = ({ mode, onSuccess }) => {
@@ -10,6 +11,7 @@ const AuthForm = ({ mode, onSuccess }) => {
     password: "",
   });
 
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -121,16 +123,30 @@ const AuthForm = ({ mode, onSuccess }) => {
         <label className="auth-form__label" htmlFor="password">
           Contraseña
         </label>
-        <input
-          className="auth-form__input"
-          id="password"
-          type="password"
-          name="password"
-          value={formData.password}
-          onChange={handleChange}
-          placeholder="********"
-          required
-        />
+
+        <div className="auth-form__password-wrapper">
+          <input
+            className="auth-form__input auth-form__input--password"
+            id="password"
+            type={showPassword ? "text" : "password"}
+            name="password"
+            value={formData.password}
+            onChange={handleChange}
+            placeholder="********"
+            required
+          />
+
+          <button
+            className="auth-form__toggle-password"
+            type="button"
+            onClick={() => setShowPassword((prev) => !prev)}
+            aria-label={
+              showPassword ? "Ocultar contraseña" : "Mostrar contraseña"
+            }
+          >
+            {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+          </button>
+        </div>
       </div>
 
       {error && <p className="auth-form__error">{error}</p>}

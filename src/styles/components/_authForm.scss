@@ -85,6 +85,40 @@
       cursor: not-allowed;
     }
   }
+
+  &__password-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+  }
+
+  &__input--password {
+    padding-right: 2.8rem;
+  }
+
+  &__toggle-password {
+    position: absolute;
+    right: 0.85rem;
+    top: 50%;
+    transform: translateY(-50%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: transparent;
+    border: none;
+    padding: 0;
+    cursor: pointer;
+    color: var.$color-blue-900;
+    transition: color 0.2s ease;
+  }
+
+  &__toggle-password:hover {
+    color:var.$color-blue-600;
+  }
+
+  &__toggle-password:focus {
+    outline: none;
+  }
 }
 
 @media (min-width: var.$bp-tablet) {
