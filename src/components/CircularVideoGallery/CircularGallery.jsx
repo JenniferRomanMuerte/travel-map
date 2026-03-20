@@ -240,12 +240,12 @@ class Media {
 
       const arc = R - Math.sqrt(R * R - effectiveX * effectiveX);
       if (this.bend > 0) {
-  this.plane.position.y = -arc + 3;
-  this.plane.rotation.z = -Math.sign(x) * Math.asin(effectiveX / R);
-} else {
-  this.plane.position.y = arc + 1.2;
-  this.plane.rotation.z = Math.sign(x) * Math.asin(effectiveX / R);
-}
+        this.plane.position.y = -arc + 3;
+        this.plane.rotation.z = -Math.sign(x) * Math.asin(effectiveX / R);
+      } else {
+        this.plane.position.y = arc + 1.2;
+        this.plane.rotation.z = Math.sign(x) * Math.asin(effectiveX / R);
+      }
     }
 
 
@@ -401,17 +401,27 @@ class App {
   }
 
   onTouchDown(e) {
+    const target = e.target;
+
+    if (!this.container.contains(target)) {
+      this.isDown = false;
+      return;
+    }
+
     this.isDown = true;
     this.scroll.position = this.scroll.current;
     this.start = e.touches ? e.touches[0].clientX : e.clientX;
     this.dragStart = this.start;
   }
+
   onTouchMove(e) {
     if (!this.isDown) return;
+
     const x = e.touches ? e.touches[0].clientX : e.clientX;
     const distance = (this.start - x) * (this.scrollSpeed * 0.025);
     this.scroll.target = this.scroll.position + distance;
   }
+
   onTouchUp(e) {
     if (!this.isDown) return;
 
