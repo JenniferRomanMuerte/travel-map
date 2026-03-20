@@ -280,17 +280,26 @@ export default function DomeGallery({
     {
       onDragStart: ({ event }) => {
         if (focusedElRef.current) return;
-        stopInertia();
+
         const evt = event;
+        if (evt.pointerType === 'touch') {
+          draggingRef.current = false;
+          return;
+        }
+
+        stopInertia();
         draggingRef.current = true;
         movedRef.current = false;
         startRotRef.current = { ...rotationRef.current };
         startPosRef.current = { x: evt.clientX, y: evt.clientY };
       },
+
       onDrag: ({ event, last, velocity = [0, 0], direction = [0, 0], movement }) => {
+        const evt = event;
+
+        if (evt.pointerType === 'touch') return;
         if (focusedElRef.current || !draggingRef.current || !startPosRef.current) return;
 
-        const evt = event;
         const dxTotal = evt.clientX - startPosRef.current.x;
         const dyTotal = evt.clientY - startPosRef.current.y;
 
@@ -313,6 +322,7 @@ export default function DomeGallery({
 
         if (last) {
           draggingRef.current = false;
+
           let [vMagX, vMagY] = velocity;
           const [dirX, dirY] = direction;
           let vx = vMagX * dirX;
@@ -332,10 +342,7 @@ export default function DomeGallery({
     },
     {
       target: mainRef,
-      eventOptions: { passive: true },
-      drag: {
-        axis: 'x'
-      }
+      eventOptions: { passive: true }
     }
   );
 
