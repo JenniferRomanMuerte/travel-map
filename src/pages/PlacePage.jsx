@@ -32,7 +32,7 @@ const PlacePage = () => {
 
         const [placeData, mediaData] = await Promise.all([
           getPlaceById(id),
-          getMediaByPlace(id)
+          getMediaByPlace(id),
         ]);
 
         setPlace(placeData);
@@ -43,7 +43,6 @@ const PlacePage = () => {
 
         if (!hasPhotos) setPhotosReady(true);
         if (!hasVideos) setVideosReady(true);
-        
       } catch (err) {
         console.error("Error cargando lugar:", err);
         setError("No se pudo cargar el viaje");
@@ -55,7 +54,6 @@ const PlacePage = () => {
     loadData();
   }, [id]);
 
-
   const photos = media.filter((item) => item.type === "photo");
   const videos = media.filter((item) => item.type === "video");
 
@@ -64,10 +62,9 @@ const PlacePage = () => {
     (photos.length > 0 && !photosReady) ||
     (videos.length > 0 && !videosReady);
 
-
   if (!loading && error) {
     return (
-      <div>
+      <div className="travel-page">
         <p>{error}</p>
         <Link to="/">← Volver al mapa</Link>
       </div>
@@ -76,13 +73,12 @@ const PlacePage = () => {
 
   if (!loading && !place) {
     return (
-      <div>
+      <div className="travel-page">
         <p>No se encontró el viaje</p>
         <Link to="/">← Volver al mapa</Link>
       </div>
     );
   }
-
 
   const formattedDate = place?.visited_at
     ? new Date(place.visited_at).toLocaleDateString("es-ES")
@@ -91,8 +87,16 @@ const PlacePage = () => {
   return (
     <div className="travel-page">
       {showLoader && <TravelLoader text="Viajando..." />}
+
       {place && (
-        <div className="travel-page__container">
+        <div
+          className="travel-page__container"
+          style={{
+            opacity: showLoader ? 0 : 1,
+            visibility: showLoader ? "hidden" : "visible",
+            pointerEvents: showLoader ? "none" : "auto",
+          }}
+        >
           <header className="travel-page__header">
             <h1 className="travel-page__title">
               {place.city}, {place.country}
