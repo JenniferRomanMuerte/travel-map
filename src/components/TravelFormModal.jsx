@@ -1,7 +1,16 @@
 import { useEffect, useState } from "react";
 import { getCityCountry } from "../services/geocodingService";
 
-const TravelFormModal = ({ isOpen, onClose, onSave, coords }) => {
+const TravelFormModal = ({
+  isOpen,
+  onClose,
+  onSave,
+  coords,
+  mode = "create",
+  initialData = null,
+  isSaving = false,
+  uploadProgress = 0
+}) => {
   const [location, setLocation] = useState(null);
   const [visitedAt, setVisitedAt] = useState("");
   const [notes, setNotes] = useState("");
@@ -9,17 +18,32 @@ const TravelFormModal = ({ isOpen, onClose, onSave, coords }) => {
   const [errors, setErrors] = useState({});
 
   useEffect(() => {
-    if (!isOpen) {
-      setLocation(null);
-      setVisitedAt("");
-      setNotes("");
-      setFiles([]);
-      setErrors({});
+    if (!isOpen) return;
+
+    setErrors({});
+    setFiles([]);
+
+    if (mode === "edit" && initialData) {
+      setVisitedAt(
+        initialData.visited_at
+          ? new Date(initialData.visited_at).toISOString().split("T")[0]
+          : ""
+      );
+      setNotes(initialData.notes || "");
+      setLocation({
+        city: initialData.city || "",
+        country: initialData.country || ""
+      });
+      return;
     }
-  }, [isOpen]);
+
+    setLocation(null);
+    setVisitedAt("");
+    setNotes("");
+  }, [isOpen, mode, initialData]);
 
   useEffect(() => {
-    if (!isOpen || !coords) return;
+    if (!isOpen || !coords || mode !== "create") return;
 
     async function fetchLocation() {
       try {
@@ -35,10 +59,12 @@ const TravelFormModal = ({ isOpen, onClose, onSave, coords }) => {
     }
 
     fetchLocation();
-  }, [isOpen, coords]);
+  }, [isOpen, coords, mode]);
 
   function handleSubmit(e) {
     e.preventDefault();
+
+    if (isSaving) return;
 
     const newErrors = {};
 
@@ -46,7 +72,7 @@ const TravelFormModal = ({ isOpen, onClose, onSave, coords }) => {
       newErrors.visitedAt = "Debes indicar la fecha del viaje";
     }
 
-    if (files.length === 0) {
+    if (mode === "create" && files.length === 0) {
       newErrors.files = "Debes subir al menos una foto o vídeo";
     }
 
@@ -99,6 +125,7 @@ const TravelFormModal = ({ isOpen, onClose, onSave, coords }) => {
   }
 
   function handleOverlayClick(e) {
+    if (isSaving) return;
     if (e.target === e.currentTarget) {
       onClose();
     }
@@ -120,13 +147,18 @@ const TravelFormModal = ({ isOpen, onClose, onSave, coords }) => {
         <button
           className="travel-modal__close"
           type="button"
-          onClick={onClose}
+          onClick={() => {
+            if (!isSaving) onClose();
+          }}
           aria-label="Cerrar modal"
+          disabled={isSaving}
         >
           ×
         </button>
 
-        <h2 className="travel-modal__title">Añadir viaje</h2>
+        <h2 className="travel-modal__title">
+          {mode === "edit" ? "Editar viaje" : "Añadir viaje"}
+        </h2>
 
         {location && (
           <p className="travel-modal__location">
@@ -175,13 +207,17 @@ const TravelFormModal = ({ isOpen, onClose, onSave, coords }) => {
             </label>
 
             <input
-              className="travel-modal__input travel-modal__input--file"
+              className="travel-modal__file-input-hidden"
               id="files"
               type="file"
               multiple
               accept="image/*,video/*"
               onChange={handleFiles}
             />
+
+            <label className="travel-modal__file-btn" htmlFor="files">
+              Seleccionar archivos
+            </label>
 
             {errors.files && (
               <p className="travel-modal__error">{errors.files}</p>
@@ -193,10 +229,30 @@ const TravelFormModal = ({ isOpen, onClose, onSave, coords }) => {
               </p>
             )}
           </div>
-
+          {isSaving && (
+            <p className="travel-modal__progress-text">
+              Subiendo archivos... {uploadProgress}%
+            </p>
+          )}
+          {isSaving && (
+            <div className="travel-modal__progress">
+              <div
+                className="travel-modal__progress-bar"
+                style={{ width: `${uploadProgress}%` }}
+              />
+            </div>
+          )}
           <div className="travel-modal__actions">
-            <button className="travel-modal__btn travel-modal__btn--primary" type="submit">
-              Guardar
+            <button
+              className="travel-modal__btn travel-modal__btn--primary"
+              type="submit"
+              disabled={isSaving}
+            >
+              {isSaving
+                ? "Guardando..."
+                : mode === "edit"
+                  ? "Guardar cambios"
+                  : "Guardar"}
             </button>
 
           </div>

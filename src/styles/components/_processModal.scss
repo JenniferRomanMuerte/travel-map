@@ -1,0 +1,84 @@
+@use "../base/variables" as var;
+
+.process-modal {
+  width: min(92%, 28rem);
+  padding: 1.6rem 1.2rem 1.2rem;
+  border-radius: var.$radius-lg;
+  background: linear-gradient(
+    180deg,
+    rgba(236, 244, 255, 0.98) 0%,
+    rgba(221, 235, 255, 0.95) 100%
+  );
+  box-shadow: var.$shadow-btn-hover;
+  color: var.$color-blue-950;
+  text-align: center;
+
+  &__overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 300;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+    background: rgba(4, 8, 20, 0.72);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+  }
+
+  &__title {
+    margin: 0 0 0.8rem;
+    font-family: var.$font-title;
+    font-size: clamp(1.35rem, 5vw, 1.9rem);
+    color: var.$color-blue-950;
+  }
+
+  &__message {
+    margin: 0;
+    font-family: var.$font-base;
+    font-size: 0.98rem;
+    line-height: 1.5;
+    color: var.$color-blue-900;
+  }
+
+  &__actions {
+    margin-top: 1.2rem;
+    display: flex;
+    justify-content: center;
+  }
+
+  &__btn {
+    min-height: 44px;
+    padding: 0.75rem 1.2rem;
+    border: 1px solid var.$color-blue-600-alpha-35;
+    border-radius: var.$radius-sm;
+    background: var.$gradient-btn-primary;
+    background-size: 200% auto;
+    color: var.$color-blue-950;
+    font-family: var.$font-base;
+    font-size: 0.96rem;
+    font-weight: 700;
+    cursor: pointer;
+    box-shadow: var.$shadow-btn;
+    transition:
+      transform var.$transition-fast,
+      background-position var.$transition-medium,
+      border-color var.$transition-fast,
+      box-shadow var.$transition-fast;
+
+    &:hover {
+      transform: translateY(-1px);
+      background-position: 100% center;
+      border-color: var.$color-blue-600-alpha-50;
+      box-shadow: var.$shadow-btn-hover;
+    }
+  }
+
+  &--success {
+    border: 1px solid rgba(30, 130, 76, 0.22);
+  }
+
+  &--error {
+    border: 1px solid rgba(160, 35, 55, 0.22);
+  }
+}

@@ -45,3 +45,18 @@ export async function getPlaceById(id) {
 
   return data;
 }
+
+export async function updatePlace(placeId, updates) {
+  const { data, error } = await supabase
+    .from("places")
+    .update(updates)
+    .eq("id", placeId)
+    .select()
+    .single();
+
+  if (error) {
+    throw error;
+  }
+
+  return data;
+}

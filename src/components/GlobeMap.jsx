@@ -17,6 +17,9 @@ const GlobeMap = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedCoords, setSelectedCoords] = useState(null);
 
+  const [isSaving, setIsSaving] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
+
   const [processModal, setProcessModal] = useState({
     isOpen: false,
     message: "",
@@ -49,7 +52,12 @@ const GlobeMap = () => {
 
   async function handleSaveTravel(data) {
     try {
-      const place = await saveTravel(data, setProcessModal);
+      setIsSaving(true);
+      setUploadProgress(0);
+
+      const place = await saveTravel(data, setUploadProgress);
+
+      setUploadProgress(100);
 
       if (mapPinsRef.current && place) {
         mapPinsRef.current.createPin(place);
@@ -71,9 +79,14 @@ const GlobeMap = () => {
 
       setProcessModal({
         isOpen: true,
-        message: "No se pudo guardar el viaje",
+        message: error?.message || "No se pudo guardar el viaje",
         type: "error"
       });
+    } finally {
+      setIsSaving(false);
+      setTimeout(() => {
+        setUploadProgress(0);
+      }, 300);
     }
   }
 
@@ -84,8 +97,13 @@ const GlobeMap = () => {
       <TravelFormModal
         isOpen={isModalOpen}
         coords={selectedCoords}
-        onClose={() => setIsModalOpen(false)}
+        onClose={() => {
+          setIsModalOpen(false);
+          setSelectedCoords(null);
+        }}
         onSave={handleSaveTravel}
+        isSaving={isSaving}
+        uploadProgress={uploadProgress}
       />
 
       <ProcessModal

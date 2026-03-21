@@ -5,7 +5,7 @@ import { compressVideo } from "../services/videoCompressor";
 import { getCityCountry } from "../services/geocodingService";
 import { supabase } from "../lib/supabase";
 
-export async function saveTravel(data, setProcessModal) {
+export async function saveTravel(data, setUploadProgress) {
   const { visitedAt, notes, files, coords } = data;
 
   if (!coords?.lat || !coords?.lng) {
@@ -21,15 +21,8 @@ export async function saveTravel(data, setProcessModal) {
     throw new Error("Usuario no autenticado");
   }
 
-  function updateLoadingMessage(message) {
-    setProcessModal({
-      isOpen: true,
-      message,
-      type: "loading"
-    });
-  }
 
-  updateLoadingMessage("Guardando viaje...");
+  setUploadProgress(5);
 
   let city = "Lugar desconocido";
   let country = "Desconocido";
@@ -56,8 +49,11 @@ export async function saveTravel(data, setProcessModal) {
     throw new Error("Place no creado");
   }
 
+  setUploadProgress(15);
+
   if (files && files.length > 0) {
     const filesArray = Array.from(files);
+    const totalFiles = filesArray.length;
 
     for (let i = 0; i < filesArray.length; i++) {
       let file = filesArray[i];
@@ -66,21 +62,23 @@ export async function saveTravel(data, setProcessModal) {
         const maxSize = 30 * 1024 * 1024;
 
         if (file.size > maxSize) {
-          updateLoadingMessage("Comprimiendo vídeo...");
+
           file = await compressVideo(file);
         }
       }
 
-      updateLoadingMessage(
-        `Subiendo archivo ${i + 1} de ${filesArray.length}...`
-      );
 
-      const url = await uploadFile(file);
+      const { url, filePath } = await uploadFile(file);
 
       const type = file.type.startsWith("video") ? "video" : "photo";
 
-      await saveMedia(place.id, type, url);
+      await saveMedia(place.id, type, url, filePath);
+
+      const progress = 15 + Math.round(((i + 1) / totalFiles) * 85);
+      setUploadProgress(progress);
     }
+  } else {
+    setUploadProgress(100);
   }
 
   return place;

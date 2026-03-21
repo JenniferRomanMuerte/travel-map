@@ -3,32 +3,34 @@ const ProcessModal = ({ isOpen, message, type, onClose }) => {
 
   let title = "Estado del proceso";
 
-  if (type === "loading") {
-    title = "Procesando...";
-  } else if (type === "success") {
+  if (type === "success") {
     title = "Proceso completado";
   } else if (type === "error") {
     title = "Ha ocurrido un error";
   }
 
   function handleOverlayClick(e) {
-    if (e.target === e.currentTarget && type !== "loading") {
+    if (e.target === e.currentTarget) {
       onClose();
     }
   }
 
   return (
-    <div className="modal-overlay" onClick={handleOverlayClick}>
-      <div className="modal">
-        <h3>{title}</h3>
+    <div className="process-modal__overlay" onClick={handleOverlayClick}>
+      <div className={`process-modal process-modal--${type}`}>
+        <h3 className="process-modal__title">{title}</h3>
 
-        <p>{message}</p>
+        <p className="process-modal__message">{message}</p>
 
-        {type !== "loading" && (
-          <button type="button" onClick={onClose}>
+        <div className="process-modal__actions">
+          <button
+            type="button"
+            className="process-modal__btn"
+            onClick={onClose}
+          >
             Cerrar
           </button>
-        )}
+        </div>
       </div>
     </div>
   );

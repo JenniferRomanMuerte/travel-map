@@ -3,8 +3,10 @@ import { useParams, Link } from "react-router-dom";
 import TravelDomeGallery from "../components/DomeGallery/TravelDomeGallery";
 import CircularVideoGallery from "../components/CircularVideoGallery/CircularVideoGallery";
 import TravelLoader from "../components/TravelLoader";
-import { getPlaceById } from "../services/placesService";
-import { getMediaByPlace } from "../services/mediaService";
+import TravelFormModal from "../components/TravelFormModal";
+import ProcessModal from "../components/ProcessModal";
+import { getPlaceById, updatePlace } from "../services/placesService";
+import { getMediaByPlace, addFilesToPlace } from "../services/mediaService";
 
 const PlacePage = () => {
   const { id } = useParams();
@@ -12,9 +14,19 @@ const PlacePage = () => {
   const [place, setPlace] = useState(null);
   const [media, setMedia] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [photosReady, setPhotosReady] = useState(false);
   const [videosReady, setVideosReady] = useState(false);
   const [error, setError] = useState("");
+
+  const [isSavingEdit, setIsSavingEdit] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
+
+  const [processModal, setProcessModal] = useState({
+    isOpen: false,
+    message: "",
+    type: "success"
+  });
 
   useEffect(() => {
     async function loadData() {
@@ -53,6 +65,76 @@ const PlacePage = () => {
 
     loadData();
   }, [id]);
+
+  async function handleSaveEdit({ visitedAt, notes, files }) {
+    if (!id) return;
+
+    try {
+      setError("");
+      setIsSavingEdit(true);
+      setUploadProgress(0);
+
+      const updatedPlace = await updatePlace(id, {
+        visited_at: visitedAt,
+        notes,
+      });
+
+      setUploadProgress(15);
+
+      let newMedia = [];
+
+      if (files.length > 0) {
+        const totalFiles = files.length;
+
+        for (let i = 0; i < files.length; i++) {
+          const file = files[i];
+          const savedItems = await addFilesToPlace(id, [file]);
+          newMedia = [...newMedia, ...savedItems];
+
+          const progress = 15 + Math.round(((i + 1) / totalFiles) * 85);
+          setUploadProgress(progress);
+        }
+      } else {
+        setUploadProgress(100);
+      }
+
+      const updatedMedia = [...media, ...newMedia];
+
+      setPlace(updatedPlace);
+      setMedia(updatedMedia);
+
+      const hasPhotos = updatedMedia.some((item) => item.type === "photo");
+      const hasVideos = updatedMedia.some((item) => item.type === "video");
+
+      if (hasPhotos) setPhotosReady(true);
+      if (hasVideos) setVideosReady(true);
+
+      setIsEditModalOpen(false);
+
+      setProcessModal({
+        isOpen: true,
+        message: "Cambios guardados correctamente",
+        type: "success"
+      });
+    } catch (err) {
+      console.error("Error guardando cambios del viaje:", err);
+
+      setProcessModal({
+        isOpen: true,
+        message: err?.message || "No se pudieron guardar los cambios",
+        type: "error"
+      });
+    } finally {
+      setIsSavingEdit(false);
+      setTimeout(() => {
+        setUploadProgress(0);
+      }, 300);
+    }
+  }
+
+  function closeProcessModal() {
+    setProcessModal((prev) => ({ ...prev, isOpen: false }));
+  }
 
   const photos = media.filter((item) => item.type === "photo");
   const videos = media.filter((item) => item.type === "video");
@@ -104,9 +186,20 @@ const PlacePage = () => {
 
             <div className="travel-page__info">
               <p className="travel-page__info-date">{formattedDate}</p>
-              <Link to="/" className="travel-page__info-back">
-                ← Volver al mapa
-              </Link>
+
+              <div className="travel-page__info-actions">
+                <button
+                  type="button"
+                  className="travel-page__edit-btn"
+                  onClick={() => setIsEditModalOpen(true)}
+                >
+                  Editar viaje
+                </button>
+
+                <Link to="/" className="travel-page__info-back">
+                  ← Volver al mapa
+                </Link>
+              </div>
             </div>
 
             {place.notes && (
@@ -149,6 +242,22 @@ const PlacePage = () => {
           </section>
         </div>
       )}
+      <TravelFormModal
+        isOpen={isEditModalOpen}
+        onClose={() => setIsEditModalOpen(false)}
+        onSave={handleSaveEdit}
+        mode="edit"
+        initialData={place}
+        isSaving={isSavingEdit}
+        uploadProgress={uploadProgress}
+      />
+      <ProcessModal
+        isOpen={processModal.isOpen}
+        message={processModal.message}
+        type={processModal.type}
+        onClose={closeProcessModal}
+      />
+
     </div>
   );
 };
