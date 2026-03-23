@@ -60,3 +60,16 @@ export async function updatePlace(placeId, updates) {
 
   return data;
 }
+
+export async function deletePlace(placeId) {
+  const { error} = await supabase
+    .from("places")
+    .delete()
+    .eq("id", placeId);
+
+  if (error) {
+    throw error;
+  }
+
+  return true;
+}

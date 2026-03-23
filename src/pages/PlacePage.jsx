@@ -1,15 +1,17 @@
 import { useEffect, useState, useRef } from "react";
-import { useParams, Link } from "react-router-dom";
+import { useParams, Link, useNavigate } from "react-router-dom";
 import TravelDomeGallery from "../components/DomeGallery/TravelDomeGallery";
 import CircularVideoGallery from "../components/CircularVideoGallery/CircularVideoGallery";
 import TravelLoader from "../components/TravelLoader";
 import TravelFormModal from "../components/TravelFormModal";
 import ProcessModal from "../components/ProcessModal";
-import { getPlaceById, updatePlace } from "../services/placesService";
+import { getPlaceById, updatePlace, deletePlace } from "../services/placesService";
 import { getMediaByPlace, addFilesToPlace } from "../services/mediaService";
 
 const PlacePage = () => {
   const { id } = useParams();
+
+  const navigate = useNavigate();
 
   const [place, setPlace] = useState(null);
   const [media, setMedia] = useState([]);
@@ -151,6 +153,40 @@ const PlacePage = () => {
     }
   }
 
+
+  async function handleDeletePlace() {
+  if (!id) return;
+
+  const confirmed = window.confirm(
+    "¿Seguro que quieres eliminar este viaje? Esta acción no se puede deshacer."
+  );
+
+  if (!confirmed) return;
+
+  try {
+    await deletePlace(id);
+
+    setProcessModal({
+      isOpen: true,
+      message: "Viaje eliminado correctamente",
+      type: "success"
+    });
+
+    setTimeout(() => {
+      navigate("/");
+    }, 1200);
+  } catch (err) {
+    console.error("Error eliminando viaje:", err);
+
+    setProcessModal({
+      isOpen: true,
+      message: err?.message || "No se pudo eliminar el viaje",
+      type: "error"
+    });
+  }
+}
+
+
   function closeProcessModal() {
     setProcessModal((prev) => ({ ...prev, isOpen: false }));
   }
@@ -219,7 +255,7 @@ const PlacePage = () => {
                 <button
                   type="button"
                   className="travel-page__delete-btn"
-                  onClick={() => setIsEditModalOpen(true)}
+                  onClick={handleDeletePlace}
                 >
                   Eliminar Viaje
                 </button>
