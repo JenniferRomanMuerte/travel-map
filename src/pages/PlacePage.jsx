@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, useMemo } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import TravelDomeGallery from "../components/DomeGallery/TravelDomeGallery";
 import CircularVideoGallery from "../components/CircularVideoGallery/CircularVideoGallery";
@@ -22,8 +22,10 @@ const PlacePage = () => {
   const [videosReady, setVideosReady] = useState(false);
   const [error, setError] = useState("");
 
+
   const [isSavingEdit, setIsSavingEdit] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
+  const [pendingGalleryRefresh, setPendingGalleryRefresh] = useState(null);
 
   const [processModal, setProcessModal] = useState({
     isOpen: false,
@@ -83,6 +85,26 @@ const PlacePage = () => {
       }
     };
   }, []);
+
+
+  function handlePhotosReady() {
+    setPhotosReady(true);
+
+    if (pendingGalleryRefresh === "photo") {
+      closeProcessModal();
+      setPendingGalleryRefresh(null);
+    }
+  }
+
+  function handleVideosReady() {
+    setVideosReady(true);
+
+    if (pendingGalleryRefresh === "video") {
+      closeProcessModal();
+      setPendingGalleryRefresh(null);
+    }
+  }
+
 
   async function handleSaveEdit({ visitedAt, notes, files }) {
     if (!id) return;
@@ -176,15 +198,17 @@ const PlacePage = () => {
     try {
       await removeMediaItem(mediaItem);
 
-      setMedia((prev) => prev.filter((item) => item.id !== mediaItem.id));
-
-      setPhotosReady(true);
-      setVideosReady(true);
+      const updatedMedia = media.filter((item) => item.id !== mediaItem.id);
+      setMedia(updatedMedia);
 
       setConfirmDeleteModal({
         isOpen: false,
         mediaItem: null,
       });
+
+      const hasRemainingSameType = updatedMedia.some(
+        (item) => item.type === mediaItem.type
+      );
 
       setProcessModal({
         isOpen: true,
@@ -192,13 +216,15 @@ const PlacePage = () => {
         type: "success"
       });
 
-      if (successTimeoutRef.current) {
-        clearTimeout(successTimeoutRef.current);
-      }
+      if (hasRemainingSameType) {
+        setPendingGalleryRefresh(mediaItem.type);
+      } else {
+        setPendingGalleryRefresh(null);
 
-      successTimeoutRef.current = setTimeout(() => {
-        closeProcessModal();
-      }, 2000);
+        setTimeout(() => {
+          closeProcessModal();
+        }, 900);
+      }
     } catch (err) {
       console.error("Error eliminando archivo:", err);
 
@@ -207,16 +233,15 @@ const PlacePage = () => {
         mediaItem: null,
       });
 
+      setPendingGalleryRefresh(null);
+
       setProcessModal({
         isOpen: true,
         message: err?.message || "No se pudo eliminar el archivo",
         type: "error"
       });
-
-      throw err;
     }
   }
-
 
   async function handleDeletePlace() {
     if (!id) return;
@@ -262,8 +287,28 @@ const PlacePage = () => {
     });
   }
 
-  const photos = media.filter((item) => item.type === "photo");
-  const videos = media.filter((item) => item.type === "video");
+  const photos = useMemo(() => {
+    return media.filter((item) => item.type === "photo");
+  }, [media]);
+
+  const videos = useMemo(() => {
+    return media.filter((item) => item.type === "video");
+  }, [media]);
+
+  const videoGalleryItems = useMemo(() => {
+    const placeTitle =
+      place?.city && place?.country
+        ? `${place.city}, ${place.country}`
+        : "Vídeo";
+
+    return videos.map((video) => ({
+      id: video.id,
+      url: video.url,
+      title: placeTitle,
+      type: video.type,
+      file_path: video.file_path,
+    }));
+  }, [videos, place?.city, place?.country]);
 
   const showLoader =
     loading ||
@@ -352,7 +397,7 @@ const PlacePage = () => {
                 key={photos.map((p) => p.id).join("-")}
                 photos={photos}
                 placeName={place.city || "viaje"}
-                onReady={() => setPhotosReady(true)}
+                onReady={handlePhotosReady}
                 onDeletePhoto={handleDeleteMedia}
               />
             )}
@@ -366,14 +411,8 @@ const PlacePage = () => {
             ) : (
               <CircularVideoGallery
                 key={videos.map((video) => video.id).join("-")}
-                videos={videos.map((video) => ({
-                  id: video.id,
-                  url: video.url,
-                  title: `${place.city}, ${place.country}`,
-                  type: video.type,
-                  file_path: video.file_path,
-                }))}
-                onReady={() => setVideosReady(true)}
+                videos={videoGalleryItems}
+                onReady={handleVideosReady}
                 onDeleteVideo={handleDeleteMedia}
               />
             )}
@@ -404,6 +443,7 @@ const PlacePage = () => {
         message={processModal.message}
         type={processModal.type}
         onClose={closeProcessModal}
+        hideCloseButton={processModal.type === "success"}
       />
 
     </div>

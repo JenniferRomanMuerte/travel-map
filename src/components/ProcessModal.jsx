@@ -1,4 +1,11 @@
-const ProcessModal = ({ isOpen, message, type, onClose }) => {
+const ProcessModal = ({
+  isOpen,
+  message,
+  type,
+  onClose,
+  autoClose = false,
+  hideCloseButton = false,
+}) => {
   if (!isOpen) return null;
 
   let title = "Estado del proceso";
@@ -10,7 +17,7 @@ const ProcessModal = ({ isOpen, message, type, onClose }) => {
   }
 
   function handleOverlayClick(e) {
-    if (e.target === e.currentTarget) {
+    if (e.target === e.currentTarget && !autoClose) {
       onClose();
     }
   }
@@ -19,18 +26,19 @@ const ProcessModal = ({ isOpen, message, type, onClose }) => {
     <div className="process-modal__overlay" onClick={handleOverlayClick}>
       <div className={`process-modal process-modal--${type}`}>
         <h3 className="process-modal__title">{title}</h3>
-
         <p className="process-modal__message">{message}</p>
 
-        <div className="process-modal__actions">
-          <button
-            type="button"
-            className="process-modal__btn"
-            onClick={onClose}
-          >
-            Cerrar
-          </button>
-        </div>
+        {!hideCloseButton && (
+          <div className="process-modal__actions">
+            <button
+              type="button"
+              className="process-modal__btn"
+              onClick={onClose}
+            >
+              Cerrar
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );
