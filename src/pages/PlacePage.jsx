@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useParams, Link } from "react-router-dom";
 import TravelDomeGallery from "../components/DomeGallery/TravelDomeGallery";
 import CircularVideoGallery from "../components/CircularVideoGallery/CircularVideoGallery";
@@ -27,6 +27,8 @@ const PlacePage = () => {
     message: "",
     type: "success"
   });
+
+  const successTimeoutRef = useRef(null);
 
   useEffect(() => {
     async function loadData() {
@@ -65,6 +67,14 @@ const PlacePage = () => {
 
     loadData();
   }, [id]);
+
+  useEffect(() => {
+    return () => {
+      if (successTimeoutRef.current) {
+        clearTimeout(successTimeoutRef.current);
+      }
+    };
+  }, []);
 
   async function handleSaveEdit({ visitedAt, notes, files }) {
     if (!id) return;
@@ -116,6 +126,15 @@ const PlacePage = () => {
         message: "Cambios guardados correctamente",
         type: "success"
       });
+
+      if (successTimeoutRef.current) {
+        clearTimeout(successTimeoutRef.current);
+      }
+
+      successTimeoutRef.current = setTimeout(() => {
+        closeProcessModal();
+      }, 3000);
+
     } catch (err) {
       console.error("Error guardando cambios del viaje:", err);
 
@@ -180,13 +199,15 @@ const PlacePage = () => {
           }}
         >
           <header className="travel-page__header">
+            <Link to="/" className="travel-page__back">
+                ← Volver al mapa
+              </Link>
             <h1 className="travel-page__title">
               {place.city}, {place.country}
             </h1>
 
             <div className="travel-page__info">
               <p className="travel-page__info-date">{formattedDate}</p>
-
               <div className="travel-page__info-actions">
                 <button
                   type="button"
@@ -195,10 +216,14 @@ const PlacePage = () => {
                 >
                   Editar viaje
                 </button>
+                <button
+                  type="button"
+                  className="travel-page__delete-btn"
+                  onClick={() => setIsEditModalOpen(true)}
+                >
+                  Eliminar Viaje
+                </button>
 
-                <Link to="/" className="travel-page__info-back">
-                  ← Volver al mapa
-                </Link>
               </div>
             </div>
 
