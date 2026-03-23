@@ -59,15 +59,18 @@ export async function saveTravel(data, setUploadProgress) {
       let file = filesArray[i];
 
       if (file.type.startsWith("video")) {
-        const maxSize = 30 * 1024 * 1024;
-
-        if (file.size > maxSize) {
-
-          file = await compressVideo(file);
-        }
+        file = await compressVideo(file);
       }
 
 
+      const supabaseLimit = 50 * 1024 * 1024;
+
+      if (file.size > supabaseLimit) {
+        throw new Error(
+          `El archivo ${file.name} sigue superando el límite de 50 MB tras la compresión`
+        );
+      }
+      
       const { url, filePath } = await uploadFile(file);
 
       const type = file.type.startsWith("video") ? "video" : "photo";

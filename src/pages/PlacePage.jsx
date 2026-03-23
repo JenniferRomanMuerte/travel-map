@@ -35,6 +35,7 @@ const PlacePage = () => {
 
   const [confirmDeleteModal, setConfirmDeleteModal] = useState({
     isOpen: false,
+    type: null, // "media" | "place" | null
     mediaItem: null,
   });
 
@@ -186,6 +187,7 @@ const PlacePage = () => {
 
     setConfirmDeleteModal({
       isOpen: true,
+      type: "media",
       mediaItem,
     });
   }
@@ -203,6 +205,7 @@ const PlacePage = () => {
 
       setConfirmDeleteModal({
         isOpen: false,
+        type: null,
         mediaItem: null,
       });
 
@@ -243,17 +246,18 @@ const PlacePage = () => {
     }
   }
 
-  async function handleDeletePlace() {
+
+  async function confirmDeletePlace() {
     if (!id) return;
-
-    const confirmed = window.confirm(
-      "¿Seguro que quieres eliminar este viaje? Esta acción no se puede deshacer."
-    );
-
-    if (!confirmed) return;
 
     try {
       await deletePlace(id);
+
+      setConfirmDeleteModal({
+        isOpen: false,
+        type: null,
+        mediaItem: null,
+      });
 
       setProcessModal({
         isOpen: true,
@@ -267,12 +271,29 @@ const PlacePage = () => {
     } catch (err) {
       console.error("Error eliminando viaje:", err);
 
+      setConfirmDeleteModal({
+        isOpen: false,
+        type: null,
+        mediaItem: null,
+      });
+
       setProcessModal({
         isOpen: true,
         message: err?.message || "No se pudo eliminar el viaje",
         type: "error"
       });
     }
+  }
+
+
+  function handleDeletePlace() {
+    if (!id) return;
+
+    setConfirmDeleteModal({
+      isOpen: true,
+      type: "place",
+      mediaItem: null,
+    });
   }
 
 
@@ -283,6 +304,7 @@ const PlacePage = () => {
   function closeConfirmDeleteModal() {
     setConfirmDeleteModal({
       isOpen: false,
+      type: null,
       mediaItem: null,
     });
   }
@@ -430,12 +452,24 @@ const PlacePage = () => {
       />
       <ConfirmModal
         isOpen={confirmDeleteModal.isOpen}
-        title="Eliminar archivo"
-        message="¿Seguro que quieres eliminar este archivo?"
+        title={
+          confirmDeleteModal.type === "place"
+            ? "Eliminar viaje"
+            : "Eliminar archivo"
+        }
+        message={
+          confirmDeleteModal.type === "place"
+            ? "¿Seguro que quieres eliminar este viaje? Esta acción no se puede deshacer."
+            : "¿Seguro que quieres eliminar este archivo?"
+        }
         confirmText="Eliminar"
         cancelText="Cancelar"
         danger={true}
-        onConfirm={confirmDeleteMedia}
+        onConfirm={
+          confirmDeleteModal.type === "place"
+            ? confirmDeletePlace
+            : confirmDeleteMedia
+        }
         onClose={closeConfirmDeleteModal}
       />
       <ProcessModal

@@ -62,13 +62,36 @@ export async function updatePlace(placeId, updates) {
 }
 
 export async function deletePlace(placeId) {
-  const { error} = await supabase
+  const { data: mediaItems, error: mediaError } = await supabase
+    .from("media")
+    .select("id, file_path")
+    .eq("place_id", placeId);
+
+  if (mediaError) {
+    throw mediaError;
+  }
+
+  const filePaths = (mediaItems || [])
+    .map((item) => item.file_path)
+    .filter(Boolean);
+
+  if (filePaths.length > 0) {
+    const { error: storageError } = await supabase.storage
+      .from("travel-media")
+      .remove(filePaths);
+
+    if (storageError) {
+      throw storageError;
+    }
+  }
+
+  const { error: deleteError } = await supabase
     .from("places")
     .delete()
     .eq("id", placeId);
 
-  if (error) {
-    throw error;
+  if (deleteError) {
+    throw deleteError;
   }
 
   return true;

@@ -9,6 +9,7 @@ export async function compressVideo(file) {
   video.src = objectUrl;
   video.muted = true;
   video.playsInline = true;
+  video.preload = "metadata";
 
   let animationFrameId = null;
 
@@ -20,11 +21,11 @@ export async function compressVideo(file) {
 
     const canvas = document.createElement("canvas");
 
-    const maxWidth = 1280;
+    const maxWidth = 960;
     const scale = Math.min(1, maxWidth / video.videoWidth);
 
-    canvas.width = video.videoWidth * scale;
-    canvas.height = video.videoHeight * scale;
+    canvas.width = Math.round(video.videoWidth * scale);
+    canvas.height = Math.round(video.videoHeight * scale);
 
     const ctx = canvas.getContext("2d");
 
@@ -32,7 +33,8 @@ export async function compressVideo(file) {
       throw new Error("No se pudo obtener el contexto del canvas");
     }
 
-    const stream = canvas.captureStream(30);
+    const fps = 24;
+    const stream = canvas.captureStream(fps);
 
     const mimeType = MediaRecorder.isTypeSupported("video/webm;codecs=vp9")
       ? "video/webm;codecs=vp9"
@@ -40,7 +42,7 @@ export async function compressVideo(file) {
 
     const recorder = new MediaRecorder(stream, {
       mimeType,
-      videoBitsPerSecond: 2_000_000
+      videoBitsPerSecond: 900_000,
     });
 
     const chunks = [];
@@ -73,11 +75,27 @@ export async function compressVideo(file) {
       recorder.onstop = resolve;
     });
 
-    return new File(
+    const compressedFile = new File(
       chunks,
       file.name.replace(/\.\w+$/, ".webm"),
       { type: "video/webm" }
     );
+
+    console.log(
+      "Vídeo original:",
+      file.name,
+      (file.size / 1024 / 1024).toFixed(2),
+      "MB"
+    );
+
+    console.log(
+      "Vídeo comprimido:",
+      compressedFile.name,
+      (compressedFile.size / 1024 / 1024).toFixed(2),
+      "MB"
+    );
+
+    return compressedFile;
   } finally {
     if (animationFrameId) {
       cancelAnimationFrame(animationFrameId);
