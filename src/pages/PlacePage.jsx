@@ -5,8 +5,9 @@ import CircularVideoGallery from "../components/CircularVideoGallery/CircularVid
 import TravelLoader from "../components/TravelLoader";
 import TravelFormModal from "../components/TravelFormModal";
 import ProcessModal from "../components/ProcessModal";
+import ConfirmModal from "../components/ConfirmModal";
 import { getPlaceById, updatePlace, deletePlace } from "../services/placesService";
-import { getMediaByPlace, addFilesToPlace } from "../services/mediaService";
+import { getMediaByPlace, addFilesToPlace, removeMediaItem } from "../services/mediaService";
 
 const PlacePage = () => {
   const { id } = useParams();
@@ -28,6 +29,11 @@ const PlacePage = () => {
     isOpen: false,
     message: "",
     type: "success"
+  });
+
+  const [confirmDeleteModal, setConfirmDeleteModal] = useState({
+    isOpen: false,
+    mediaItem: null,
   });
 
   const successTimeoutRef = useRef(null);
@@ -153,42 +159,107 @@ const PlacePage = () => {
     }
   }
 
+  function handleDeleteMedia(mediaItem) {
+    if (!mediaItem) return;
 
-  async function handleDeletePlace() {
-  if (!id) return;
-
-  const confirmed = window.confirm(
-    "¿Seguro que quieres eliminar este viaje? Esta acción no se puede deshacer."
-  );
-
-  if (!confirmed) return;
-
-  try {
-    await deletePlace(id);
-
-    setProcessModal({
+    setConfirmDeleteModal({
       isOpen: true,
-      message: "Viaje eliminado correctamente",
-      type: "success"
-    });
-
-    setTimeout(() => {
-      navigate("/");
-    }, 1200);
-  } catch (err) {
-    console.error("Error eliminando viaje:", err);
-
-    setProcessModal({
-      isOpen: true,
-      message: err?.message || "No se pudo eliminar el viaje",
-      type: "error"
+      mediaItem,
     });
   }
-}
+
+  async function confirmDeleteMedia() {
+    const mediaItem = confirmDeleteModal.mediaItem;
+
+    if (!mediaItem) return;
+
+    try {
+      await removeMediaItem(mediaItem);
+
+      setMedia((prev) => prev.filter((item) => item.id !== mediaItem.id));
+
+      setPhotosReady(true);
+      setVideosReady(true);
+
+      setConfirmDeleteModal({
+        isOpen: false,
+        mediaItem: null,
+      });
+
+      setProcessModal({
+        isOpen: true,
+        message: "Archivo eliminado correctamente",
+        type: "success"
+      });
+
+      if (successTimeoutRef.current) {
+        clearTimeout(successTimeoutRef.current);
+      }
+
+      successTimeoutRef.current = setTimeout(() => {
+        closeProcessModal();
+      }, 2000);
+    } catch (err) {
+      console.error("Error eliminando archivo:", err);
+
+      setConfirmDeleteModal({
+        isOpen: false,
+        mediaItem: null,
+      });
+
+      setProcessModal({
+        isOpen: true,
+        message: err?.message || "No se pudo eliminar el archivo",
+        type: "error"
+      });
+
+      throw err;
+    }
+  }
+
+
+  async function handleDeletePlace() {
+    if (!id) return;
+
+    const confirmed = window.confirm(
+      "¿Seguro que quieres eliminar este viaje? Esta acción no se puede deshacer."
+    );
+
+    if (!confirmed) return;
+
+    try {
+      await deletePlace(id);
+
+      setProcessModal({
+        isOpen: true,
+        message: "Viaje eliminado correctamente",
+        type: "success"
+      });
+
+      setTimeout(() => {
+        navigate("/");
+      }, 1200);
+    } catch (err) {
+      console.error("Error eliminando viaje:", err);
+
+      setProcessModal({
+        isOpen: true,
+        message: err?.message || "No se pudo eliminar el viaje",
+        type: "error"
+      });
+    }
+  }
 
 
   function closeProcessModal() {
     setProcessModal((prev) => ({ ...prev, isOpen: false }));
+  }
+
+  function closeConfirmDeleteModal() {
+    setConfirmDeleteModal({
+      isOpen: false,
+      mediaItem: null,
+    });
   }
 
   const photos = media.filter((item) => item.type === "photo");
@@ -236,8 +307,8 @@ const PlacePage = () => {
         >
           <header className="travel-page__header">
             <Link to="/" className="travel-page__back">
-                ← Volver al mapa
-              </Link>
+              ← Volver al mapa
+            </Link>
             <h1 className="travel-page__title">
               {place.city}, {place.country}
             </h1>
@@ -278,9 +349,11 @@ const PlacePage = () => {
               <p className="travel-page__empty">No hay fotos</p>
             ) : (
               <TravelDomeGallery
+                key={photos.map((p) => p.id).join("-")}
                 photos={photos}
                 placeName={place.city || "viaje"}
                 onReady={() => setPhotosReady(true)}
+                onDeletePhoto={handleDeleteMedia}
               />
             )}
           </section>
@@ -292,12 +365,16 @@ const PlacePage = () => {
               <p className="travel-page__empty">No hay vídeos</p>
             ) : (
               <CircularVideoGallery
+                key={videos.map((video) => video.id).join("-")}
                 videos={videos.map((video) => ({
                   id: video.id,
                   url: video.url,
                   title: `${place.city}, ${place.country}`,
+                  type: video.type,
+                  file_path: video.file_path,
                 }))}
                 onReady={() => setVideosReady(true)}
+                onDeleteVideo={handleDeleteMedia}
               />
             )}
           </section>
@@ -311,6 +388,16 @@ const PlacePage = () => {
         initialData={place}
         isSaving={isSavingEdit}
         uploadProgress={uploadProgress}
+      />
+      <ConfirmModal
+        isOpen={confirmDeleteModal.isOpen}
+        title="Eliminar archivo"
+        message="¿Seguro que quieres eliminar este archivo?"
+        confirmText="Eliminar"
+        cancelText="Cancelar"
+        danger={true}
+        onConfirm={confirmDeleteMedia}
+        onClose={closeConfirmDeleteModal}
       />
       <ProcessModal
         isOpen={processModal.isOpen}

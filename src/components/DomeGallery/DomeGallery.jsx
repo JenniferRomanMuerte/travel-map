@@ -50,7 +50,11 @@ function buildItems(pool, segmentsX) {
     if (typeof image === 'string') {
       return { src: image, alt: '' };
     }
-    return { src: image.src || '', alt: image.alt || '' };
+    return {
+      ...image,
+      src: image.src || '',
+      alt: image.alt || ''
+    };
   });
 
   const usedImages = Array.from({ length: totalSlots }, (_, i) => normalizedImages[i % normalizedImages.length]);
@@ -70,6 +74,7 @@ function buildItems(pool, segmentsX) {
 
   return coords.map((c, i) => ({
     ...c,
+    ...usedImages[i],
     src: usedImages[i].src,
     alt: usedImages[i].alt
   }));
@@ -103,7 +108,8 @@ export default function DomeGallery({
   openedImageHeight = null,
   imageBorderRadius = '30px',
   openedImageBorderRadius = '30px',
-  grayscale = false
+  grayscale = false,
+  onDeleteImage
 }) {
   const rootRef = useRef(null);
   const mainRef = useRef(null);
@@ -342,106 +348,138 @@ export default function DomeGallery({
     }
   );
 
-  useEffect(() => {
-    const scrim = scrimRef.current;
-    if (!scrim) return;
-    const close = () => {
-      if (performance.now() - openStartedAtRef.current < 250) return;
-      const el = focusedElRef.current;
-      if (!el) return;
-      const parent = el.parentElement;
-      const overlay = viewerRef.current?.querySelector('.enlarge');
-      if (!overlay) return;
-      const refDiv = parent.querySelector('.item__image--reference');
-      const originalPos = originalTilePositionRef.current;
-      if (!originalPos) {
-        overlay.remove();
-        if (refDiv) refDiv.remove();
-        parent.style.setProperty('--rot-y-delta', '0deg');
-        parent.style.setProperty('--rot-x-delta', '0deg');
+  const closeFocusedItem = useCallback(() => {
+    if (performance.now() - openStartedAtRef.current < 250) return;
+
+    const el = focusedElRef.current;
+    if (!el) return;
+
+    const parent = el.parentElement;
+    const overlay = viewerRef.current?.querySelector('.enlarge');
+    const deleteBtn = viewerRef.current?.querySelector('.viewer__delete-btn');
+    if (!overlay) return;
+
+    const refDiv = parent.querySelector('.item__image--reference');
+    const originalPos = originalTilePositionRef.current;
+
+    if (!originalPos) {
+      overlay.remove();
+      if (deleteBtn) deleteBtn.remove();
+      if (refDiv) refDiv.remove();
+      parent.style.setProperty('--rot-y-delta', '0deg');
+      parent.style.setProperty('--rot-x-delta', '0deg');
+      el.style.visibility = '';
+      el.style.zIndex = 0;
+      focusedElRef.current = null;
+      rootRef.current?.removeAttribute('data-enlarging');
+      openingRef.current = false;
+      unlockScroll();
+      return;
+    }
+
+    const currentRect = overlay.getBoundingClientRect();
+    const rootRect = rootRef.current.getBoundingClientRect();
+    const originalPosRelativeToRoot = {
+      left: originalPos.left - rootRect.left,
+      top: originalPos.top - rootRect.top,
+      width: originalPos.width,
+      height: originalPos.height
+    };
+    const overlayRelativeToRoot = {
+      left: currentRect.left - rootRect.left,
+      top: currentRect.top - rootRect.top,
+      width: currentRect.width,
+      height: currentRect.height
+    };
+
+    const animatingOverlay = document.createElement('div');
+    animatingOverlay.className = 'enlarge-closing';
+    animatingOverlay.style.cssText = `position:absolute;left:${overlayRelativeToRoot.left}px;top:${overlayRelativeToRoot.top}px;width:${overlayRelativeToRoot.width}px;height:${overlayRelativeToRoot.height}px;z-index:9999;border-radius: var(--enlarge-radius, 32px);overflow:hidden;box-shadow:0 10px 30px rgba(0,0,0,.35);transition:all ${enlargeTransitionMs}ms ease-out;pointer-events:none;margin:0;transform:none;`;
+
+    const originalImg = overlay.querySelector('img');
+    if (originalImg) {
+      const img = originalImg.cloneNode();
+      img.style.cssText = 'width:100%;height:100%;object-fit:cover;';
+      animatingOverlay.appendChild(img);
+    }
+
+    overlay.remove();
+    rootRef.current.appendChild(animatingOverlay);
+
+    void animatingOverlay.getBoundingClientRect();
+
+    requestAnimationFrame(() => {
+      animatingOverlay.style.left = originalPosRelativeToRoot.left + 'px';
+      animatingOverlay.style.top = originalPosRelativeToRoot.top + 'px';
+      animatingOverlay.style.width = originalPosRelativeToRoot.width + 'px';
+      animatingOverlay.style.height = originalPosRelativeToRoot.height + 'px';
+      animatingOverlay.style.opacity = '0';
+    });
+
+    const cleanup = () => {
+      animatingOverlay.remove();
+      if (deleteBtn) deleteBtn.remove();
+      originalTilePositionRef.current = null;
+      if (refDiv) refDiv.remove();
+
+      parent.style.transition = 'none';
+      el.style.transition = 'none';
+      parent.style.setProperty('--rot-y-delta', '0deg');
+      parent.style.setProperty('--rot-x-delta', '0deg');
+
+      requestAnimationFrame(() => {
         el.style.visibility = '';
+        el.style.opacity = '0';
         el.style.zIndex = 0;
         focusedElRef.current = null;
         rootRef.current?.removeAttribute('data-enlarging');
-        openingRef.current = false;
-        unlockScroll();
-        return;
-      }
-      const currentRect = overlay.getBoundingClientRect();
-      const rootRect = rootRef.current.getBoundingClientRect();
-      const originalPosRelativeToRoot = {
-        left: originalPos.left - rootRect.left,
-        top: originalPos.top - rootRect.top,
-        width: originalPos.width,
-        height: originalPos.height
-      };
-      const overlayRelativeToRoot = {
-        left: currentRect.left - rootRect.left,
-        top: currentRect.top - rootRect.top,
-        width: currentRect.width,
-        height: currentRect.height
-      };
-      const animatingOverlay = document.createElement('div');
-      animatingOverlay.className = 'enlarge-closing';
-      animatingOverlay.style.cssText = `position:absolute;left:${overlayRelativeToRoot.left}px;top:${overlayRelativeToRoot.top}px;width:${overlayRelativeToRoot.width}px;height:${overlayRelativeToRoot.height}px;z-index:9999;border-radius: var(--enlarge-radius, 32px);overflow:hidden;box-shadow:0 10px 30px rgba(0,0,0,.35);transition:all ${enlargeTransitionMs}ms ease-out;pointer-events:none;margin:0;transform:none;`;
-      const originalImg = overlay.querySelector('img');
-      if (originalImg) {
-        const img = originalImg.cloneNode();
-        img.style.cssText = 'width:100%;height:100%;object-fit:cover;';
-        animatingOverlay.appendChild(img);
-      }
-      overlay.remove();
-      rootRef.current.appendChild(animatingOverlay);
-      void animatingOverlay.getBoundingClientRect();
-      requestAnimationFrame(() => {
-        animatingOverlay.style.left = originalPosRelativeToRoot.left + 'px';
-        animatingOverlay.style.top = originalPosRelativeToRoot.top + 'px';
-        animatingOverlay.style.width = originalPosRelativeToRoot.width + 'px';
-        animatingOverlay.style.height = originalPosRelativeToRoot.height + 'px';
-        animatingOverlay.style.opacity = '0';
-      });
-      const cleanup = () => {
-        animatingOverlay.remove();
-        originalTilePositionRef.current = null;
-        if (refDiv) refDiv.remove();
-        parent.style.transition = 'none';
-        el.style.transition = 'none';
-        parent.style.setProperty('--rot-y-delta', '0deg');
-        parent.style.setProperty('--rot-x-delta', '0deg');
+
         requestAnimationFrame(() => {
-          el.style.visibility = '';
-          el.style.opacity = '0';
-          el.style.zIndex = 0;
-          focusedElRef.current = null;
-          rootRef.current?.removeAttribute('data-enlarging');
+          parent.style.transition = '';
+          el.style.transition = 'opacity 300ms ease-out';
+
           requestAnimationFrame(() => {
-            parent.style.transition = '';
-            el.style.transition = 'opacity 300ms ease-out';
-            requestAnimationFrame(() => {
-              el.style.opacity = '1';
-              setTimeout(() => {
-                el.style.transition = '';
-                el.style.opacity = '';
-                openingRef.current = false;
-                if (!draggingRef.current && rootRef.current?.getAttribute('data-enlarging') !== 'true')
-                  document.body.classList.remove('dg-scroll-lock');
-              }, 300);
-            });
+            el.style.opacity = '1';
+            setTimeout(() => {
+              el.style.transition = '';
+              el.style.opacity = '';
+              openingRef.current = false;
+              if (!draggingRef.current && rootRef.current?.getAttribute('data-enlarging') !== 'true') {
+                document.body.classList.remove('dg-scroll-lock');
+              }
+            }, 300);
           });
         });
-      };
-      animatingOverlay.addEventListener('transitionend', cleanup, { once: true });
+      });
     };
+
+    animatingOverlay.addEventListener('transitionend', cleanup, { once: true });
+  }, [enlargeTransitionMs, unlockScroll]);
+
+
+  useEffect(() => {
+    const scrim = scrimRef.current;
+    if (!scrim) return;
+
+    const close = () => {
+      console.log('CLICK EN SCRIM / CIERRE OVERLAY');
+      closeFocusedItem();
+    };
+
     scrim.addEventListener('click', close);
+
     const onKey = e => {
       if (e.key === 'Escape') close();
     };
+
     window.addEventListener('keydown', onKey);
+
     return () => {
       scrim.removeEventListener('click', close);
       window.removeEventListener('keydown', onKey);
     };
-  }, [enlargeTransitionMs, unlockScroll]);
+  }, [closeFocusedItem]);
+
 
   const openItemFromElement = useCallback(
     el => {
@@ -509,18 +547,22 @@ export default function DomeGallery({
       overlay.style.willChange = 'transform, opacity, left, top, width, height';
       overlay.style.transformOrigin = 'top left';
       overlay.style.transition = `
-      transform ${enlargeTransitionMs}ms ease,
-      opacity ${enlargeTransitionMs}ms ease,
-      left ${enlargeTransitionMs}ms ease,
-      top ${enlargeTransitionMs}ms ease,
-      width ${enlargeTransitionMs}ms ease,
-      height ${enlargeTransitionMs}ms ease
-    `;
+  transform ${enlargeTransitionMs}ms ease,
+  opacity ${enlargeTransitionMs}ms ease,
+  left ${enlargeTransitionMs}ms ease,
+  top ${enlargeTransitionMs}ms ease,
+  width ${enlargeTransitionMs}ms ease,
+  height ${enlargeTransitionMs}ms ease
+`;
 
       const rawSrc = parent.dataset.src || el.querySelector('img')?.src || '';
+      const itemIndex = Number(parent.dataset.itemIndex);
+      const currentItem = Number.isFinite(itemIndex) ? items[itemIndex] : null;
+
       const img = document.createElement('img');
       img.src = rawSrc;
       overlay.appendChild(img);
+
       viewerRef.current.appendChild(overlay);
 
       img.onload = () => {
@@ -561,6 +603,36 @@ export default function DomeGallery({
           overlay.style.opacity = '1';
           overlay.style.transform = 'translate(0px, 0px) scale(1, 1)';
           rootRef.current?.setAttribute('data-enlarging', 'true');
+
+          if (onDeleteImage && currentItem?.original) {
+            const deleteBtn = document.createElement('button');
+            deleteBtn.type = 'button';
+            deleteBtn.className = 'viewer__delete-btn';
+            deleteBtn.textContent = 'Eliminar';
+
+            deleteBtn.addEventListener('click', async (ev) => {
+              console.log('CLICK EN BOTÓN ELIMINAR');
+              ev.stopPropagation();
+
+              try {
+                closeFocusedItem();
+
+                setTimeout(async () => {
+                  try {
+                    console.log('LLAMANDO A onDeleteImage', currentItem.original);
+                    await onDeleteImage(currentItem.original);
+                    console.log('onDeleteImage OK');
+                  } catch (error) {
+                    console.error('Error eliminando imagen:', error);
+                  }
+                }, 50);
+              } catch (error) {
+                console.error('Error cerrando visor:', error);
+              }
+            });
+
+            viewerRef.current.appendChild(deleteBtn);
+          }
         });
       };
     },
@@ -617,6 +689,7 @@ export default function DomeGallery({
                 key={`${it.x},${it.y},${i}`}
                 className="item"
                 data-src={it.src}
+                data-item-index={i}
                 data-offset-x={it.x}
                 data-offset-y={it.y}
                 data-size-x={it.sizeX}

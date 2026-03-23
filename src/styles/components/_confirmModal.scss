@@ -1,7 +1,7 @@
 @use "../base/variables" as var;
 
-.process-modal {
-  width: min(92%, 28rem);
+.confirm-modal {
+  width: min(92%, 30rem);
   padding: 1.6rem 1.2rem 1.2rem;
   border-radius: var.$radius-lg;
   background: linear-gradient(
@@ -12,6 +12,7 @@
   box-shadow: var.$shadow-btn-hover;
   color: var.$color-blue-950;
   text-align: center;
+  border: 1px solid rgba(160, 35, 55, 0.18);
 
   &__overlay {
     position: fixed;
@@ -45,21 +46,18 @@
     margin-top: 1.2rem;
     display: flex;
     justify-content: center;
+    gap: 0.8rem;
+    flex-wrap: wrap;
   }
 
   &__btn {
     min-height: 44px;
     padding: 0.75rem 1.2rem;
-    border: 1px solid var.$color-blue-600-alpha-35;
     border-radius: var.$radius-sm;
-    background: var.$gradient-btn-primary;
-    background-size: 200% auto;
-    color: var.$color-blue-950;
     font-family: var.$font-base;
     font-size: 0.96rem;
     font-weight: 700;
     cursor: pointer;
-    box-shadow: var.$shadow-btn;
     transition:
       transform var.$transition-fast,
       background-position var.$transition-medium,
@@ -68,17 +66,40 @@
 
     &:hover {
       transform: translateY(-1px);
-      background-position: 100% center;
-      border-color: var.$color-blue-600-alpha-50;
-      box-shadow: var.$shadow-btn-hover;
+    }
+
+    &--secondary {
+      border: 1px solid var.$color-blue-600-alpha-35;
+      background: rgba(255, 255, 255, 0.75);
+      color: var.$color-blue-950;
+      box-shadow: var.$shadow-btn;
+
+      &:hover {
+        border-color: var.$color-blue-600-alpha-50;
+        box-shadow: var.$shadow-btn-hover;
+      }
+    }
+
+    &--danger {
+      border: 1px solid rgba(160, 35, 55, 0.28);
+      background: linear-gradient(
+        90deg,
+        rgba(255, 224, 228, 0.98) 0%,
+        rgba(255, 184, 194, 0.98) 48%,
+        rgba(255, 209, 215, 0.98) 100%
+      );
+      background-size: 200% auto;
+      color: #7a1020;
+      box-shadow: 0 10px 20px rgba(122, 16, 32, 0.18);
+
+      &:hover {
+        background-position: 100% center;
+        box-shadow: 0 14px 24px rgba(122, 16, 32, 0.24);
+      }
     }
   }
 
-  &--success {
-    border: 1px solid rgba(30, 130, 76, 0.22);
-  }
-
-  &--error {
+  &--danger {
     border: 1px solid rgba(160, 35, 55, 0.22);
   }
 }

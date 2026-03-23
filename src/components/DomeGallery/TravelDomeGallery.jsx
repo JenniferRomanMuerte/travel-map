@@ -1,10 +1,14 @@
 import DomeGallery from "./DomeGallery";
 import { useEffect } from "react";
 
-const TravelDomeGallery = ({ photos, placeName = "viaje", onReady }) => {
+const TravelDomeGallery = ({ photos, placeName = "viaje", onReady, onDeletePhoto }) => {
   const images = photos.map((photo) => ({
+    id: photo.id,
     src: photo.url,
     alt: `Foto de ${placeName}`,
+    type: photo.type,
+    file_path: photo.file_path,
+    original: photo
   }));
 
   useEffect(() => {
@@ -51,6 +55,7 @@ const TravelDomeGallery = ({ photos, placeName = "viaje", onReady }) => {
         overlayBlurColor="#ddebff"
         imageBorderRadius="24px"
         openedImageBorderRadius="24px"
+        onDeleteImage={onDeletePhoto}
       />
     </div>
   );

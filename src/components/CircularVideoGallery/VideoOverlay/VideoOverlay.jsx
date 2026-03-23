@@ -1,6 +1,17 @@
 
-const VideoOverlay = ({ videoUrl, title, onClose }) => {
-  if (!videoUrl) return null;
+const VideoOverlay = ({ video, onClose, onDelete }) => {
+  if (!video) return null;
+
+  async function handleDeleteClick() {
+    if (!onDelete) return;
+
+    try {
+      await onDelete(video);
+      onClose();
+    } catch (error) {
+      console.error("Error eliminando vídeo:", error);
+    }
+  }
 
   return (
     <div className="video-overlay" onClick={onClose}>
@@ -16,12 +27,22 @@ const VideoOverlay = ({ videoUrl, title, onClose }) => {
           ×
         </button>
 
-        {title && <h3 className="video-overlay__title">{title}</h3>}
+        {onDelete && (
+          <button
+            className="video-overlay__delete"
+            onClick={handleDeleteClick}
+            type="button"
+          >
+            Eliminar
+          </button>
+        )}
+
+        {video.title && <h3 className="video-overlay__title">{video.title}</h3>}
 
         <div className="video-overlay__media">
           <video
             className="video-overlay__player"
-            src={videoUrl}
+            src={video.url}
             controls
             autoPlay
             playsInline
@@ -30,6 +51,7 @@ const VideoOverlay = ({ videoUrl, title, onClose }) => {
       </div>
     </div>
   );
+
 };
 
 export default VideoOverlay;

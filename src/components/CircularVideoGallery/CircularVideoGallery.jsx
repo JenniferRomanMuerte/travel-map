@@ -3,7 +3,7 @@ import VideoOverlay from "./VideoOverlay/VideoOverlay";
 import CircularGallery from "./CircularGallery";
 
 
-const CircularVideoGallery = ({ videos, onReady }) => {
+const CircularVideoGallery = ({ videos, onReady, onDeleteVideo }) => {
   const [selectedVideo, setSelectedVideo] = useState(null);
   const [galleryItems, setGalleryItems] = useState([]);
 
@@ -52,6 +52,8 @@ const CircularVideoGallery = ({ videos, onReady }) => {
             text: video.title || "Vídeo",
             url: video.url,
             title: video.title || "Vídeo",
+            type: video.type,
+            file_path: video.file_path,
           };
         })
       );
@@ -65,6 +67,16 @@ const CircularVideoGallery = ({ videos, onReady }) => {
 
     buildGalleryItems();
   }, [videos, onReady]);
+
+  useEffect(() => {
+    if (!selectedVideo) return;
+
+    const stillExists = videos.some((video) => video.id === selectedVideo.id);
+
+    if (!stillExists) {
+      setSelectedVideo(null);
+    }
+  }, [videos, selectedVideo]);
 
   if (!videos || videos.length === 0) return null;
 
@@ -88,9 +100,9 @@ const CircularVideoGallery = ({ videos, onReady }) => {
       </section>
 
       <VideoOverlay
-        videoUrl={selectedVideo?.url || null}
-        title={selectedVideo?.title || ""}
+        video={selectedVideo}
         onClose={() => setSelectedVideo(null)}
+        onDelete={onDeleteVideo}
       />
     </>
   );
