@@ -2,49 +2,96 @@
 
 .travel-page {
   min-height: 100vh;
-  padding: 6.5rem 1rem 2rem;
+  padding: 6.2rem 1rem 2rem;
   background:
-    linear-gradient(180deg,
+    linear-gradient(
+      180deg,
       rgba(166, 185, 228, 0.82) 0%,
       rgba(109, 135, 194, 0.12) 45%,
-      rgba(166, 185, 228, 0.82) 100%),
+      rgba(166, 185, 228, 0.82) 100%
+    ),
     url("/background_cloud.webp") center / cover no-repeat;
   color: var.$color-blue-950;
 
   &__container {
-    width: min(100%, 72rem);
+    width: 100%;
+    max-width: 72rem;
     margin: 0 auto;
+  }
+
+  &__header {
+    position: relative;
+    margin-bottom: 1.8rem;
+  }
+
+  &__back {
+    position: absolute;
+    top: -4.8rem;
+    right: 1rem;
+    color: var.$color-blue-900;
+    text-decoration: none;
+    font-family: var.$font-base;
+    font-size: 0.98rem;
+    font-weight: 600;
+    transition:
+      transform var.$transition-fast,
+      opacity var.$transition-fast;
+
+    &:hover {
+      transform: translateX(-2px);
+      opacity: 0.85;
+    }
+  }
+
+  &__title {
+    text-align: center;
+    margin-bottom: 0.8rem;
+    font-family: var.$font-title;
+    font-size: clamp(2rem, 8vw, 3.4rem);
+    line-height: 1.15;
+    letter-spacing: 0.08rem;
+    text-shadow: 2px 2px 10px var.$color-blue-600-alpha-50;
+    background: linear-gradient(
+      90deg,
+      var.$color-blue-950 0%,
+      var.$color-blue-600 65%,
+      var.$color-blue-900 80%
+    );
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
   }
 
   &__info {
     display: flex;
-    align-items: start;
-    justify-content: space-between;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 1.2rem;
     padding: 1rem;
-    gap: 2rem;
 
     &-date {
       color: var.$color-blue-900;
       font-family: var.$font-base;
-      font-size: 1.2rem;
+      font-size: 1rem;
       font-weight: 600;
+      text-align: center;
     }
 
     &-actions {
       display: flex;
       align-items: center;
-      gap: 4rem;
-      flex-wrap: wrap;
+      justify-content: space-around;
+      gap: 0.75rem;
+      flex-wrap: nowrap;
     }
   }
 
   &__edit-btn,
   &__delete-btn {
     min-height: 44px;
-    padding: 0.75rem 1rem;
+    padding: 0.7rem 0.85rem;
     border-radius: var.$radius-sm;
     font-family: var.$font-base;
-    font-size: 0.95rem;
+    font-size: 0.82rem;
     font-weight: 700;
     cursor: pointer;
     background-size: 200% auto;
@@ -72,10 +119,12 @@
 
   &__delete-btn {
     border: 1px solid rgba(160, 35, 55, 0.28);
-    background: linear-gradient(90deg,
-        rgba(255, 224, 228, 0.98) 0%,
-        rgba(255, 184, 194, 0.98) 48%,
-        rgba(255, 209, 215, 0.98) 100%);
+    background: linear-gradient(
+      90deg,
+      rgba(255, 224, 228, 0.98) 0%,
+      rgba(255, 184, 194, 0.98) 48%,
+      rgba(255, 209, 215, 0.98) 100%
+    );
     color: #7a1020;
     box-shadow: 0 8px 18px rgba(122, 16, 32, 0.14);
 
@@ -86,47 +135,6 @@
       box-shadow: 0 12px 24px rgba(122, 16, 32, 0.2);
     }
   }
-
-  &__header {
-    margin-bottom: 1.8rem;
-  }
-
-  &__back {
-    position: absolute;
-    top: 0;
-    right: 0;
-    margin: 4rem;
-    color: var.$color-blue-900;
-    text-decoration: none;
-    font-family: var.$font-base;
-    font-size: 1.2rem;
-    font-weight: 600;
-    transition:
-      transform var.$transition-fast,
-      opacity var.$transition-fast;
-
-    &:hover {
-      transform: translateX(-2px);
-      opacity: 0.85;
-    }
-  }
-
-  &__title {
-    text-align: center;
-    margin-bottom: 2rem;
-    font-family: var.$font-title;
-    font-size: clamp(2rem, 8vw, 3.4rem);
-    line-height: 1.15;
-    letter-spacing: 0.08rem;
-    text-shadow: 2px 2px 10px var.$color-blue-600-alpha-50;
-    background: linear-gradient(90deg,
-        var.$color-blue-950 0%,
-        var.$color-blue-600 65%,
-        var.$color-blue-900 80%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-  }
-
 
   &__notes {
     margin-top: 1.3rem;
@@ -142,7 +150,7 @@
   &__notes-title {
     margin: 0 0 0.5rem;
     font-family: var.$font-base;
-    font-size: 1.2rem;
+    font-size: 1.1rem;
     font-weight: 700;
     color: var.$color-blue-900;
   }
@@ -150,7 +158,7 @@
   &__notes-text {
     margin: 0;
     font-family: var.$font-base;
-    font-size: 0.98rem;
+    font-size: 0.96rem;
     line-height: 1.65;
     color: var.$color-blue-950;
     white-space: pre-line;
@@ -163,12 +171,13 @@
     font-size: clamp(1.5rem, 5vw, 2.6rem);
     line-height: 1.2;
     letter-spacing: 0.06rem;
-
     text-shadow: 2px 2px 10px var.$color-blue-600-alpha-35;
-    background: linear-gradient(90deg,
-        var.$color-blue-600 0%,
-        var.$color-blue-950 65%,
-        var.$color-blue-600 80%);
+    background: linear-gradient(
+      90deg,
+      var.$color-blue-600 0%,
+      var.$color-blue-950 65%,
+      var.$color-blue-600 80%
+    );
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
   }
@@ -223,7 +232,6 @@
     display: block;
     width: 100%;
     border-radius: var.$radius-md;
-
     background: rgba(255, 255, 255, 0.7);
     box-shadow:
       0 14px 20px rgba(8, 18, 38, 0.36),
@@ -235,6 +243,28 @@
 @media (min-width: var.$bp-tablet) {
   .travel-page {
     padding: 7.5rem 1.5rem 3rem;
+
+    &__back {
+      top: -3.2rem;
+      left: 0;
+      font-size: 1.08rem;
+    }
+
+    &__info {
+      align-items: stretch;
+      gap: 1rem;
+      padding: 1rem;
+
+      &-date {
+        font-size: 1.1rem;
+      }
+    }
+
+    &__edit-btn,
+    &__delete-btn {
+      padding: 0.75rem 1rem;
+      font-size: 0.9rem;
+    }
 
     &__gallery {
       grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -251,6 +281,37 @@
 @media (min-width: var.$bp-desktop) {
   .travel-page {
     padding: 8rem 2rem 4rem;
+
+    &__back {
+      top: 0;
+      right: 0;
+      left: auto;
+      margin: 0;
+      font-size: 1.2rem;
+    }
+
+    &__info {
+      flex-direction: row;
+      align-items: center;
+      justify-content: space-around;
+      padding-top: 3rem;
+
+      &-date {
+        font-size: 1.2rem;
+        text-align: left;
+      }
+
+      &-actions {
+        justify-content: flex-end;
+        gap: 4rem;
+        flex-wrap: wrap;
+      }
+    }
+
+    &__edit-btn,
+    &__delete-btn {
+      font-size: 0.95rem;
+    }
 
     &__gallery {
       grid-template-columns: repeat(3, minmax(0, 1fr));
