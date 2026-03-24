@@ -1,8 +1,8 @@
 import { createPlace } from "../services/placesService";
-import { uploadFile } from "../services/storageService";
 import { saveMedia } from "../services/mediaService";
-import { compressVideo } from "../services/videoCompressor";
+import { compressVideo, compressImage } from "../lib/mediaCompressor";
 import { getCityCountry } from "../services/geocodingService";
+import { uploadMediaFile } from "../services/mediaStorageService";
 import { supabase } from "../lib/supabase";
 
 export async function saveTravel(data, setUploadProgress) {
@@ -20,7 +20,6 @@ export async function saveTravel(data, setUploadProgress) {
   if (userError || !user) {
     throw new Error("Usuario no autenticado");
   }
-
 
   setUploadProgress(5);
 
@@ -57,25 +56,22 @@ export async function saveTravel(data, setUploadProgress) {
 
     for (let i = 0; i < filesArray.length; i++) {
       let file = filesArray[i];
+      let type = "photo";
 
-      if (file.type.startsWith("video")) {
+      if (file.type.startsWith("video/")) {
         file = await compressVideo(file);
+        type = "video";
+      } else if (file.type.startsWith("image/")) {
+        file = await compressImage(file);
+        type = "photo";
+      } else {
+        throw new Error("Tipo de archivo no soportado");
       }
 
+      const result = await uploadMediaFile(file);
+      console.log("RESULTADO R2:", result);
 
-      const supabaseLimit = 50 * 1024 * 1024;
-
-      if (file.size > supabaseLimit) {
-        throw new Error(
-          `El archivo ${file.name} sigue superando el límite de 50 MB tras la compresión`
-        );
-      }
-      
-      const { url, filePath } = await uploadFile(file);
-
-      const type = file.type.startsWith("video") ? "video" : "photo";
-
-      await saveMedia(place.id, type, url, filePath);
+      await saveMedia(place.id, type, result.url, result.filePath);
 
       const progress = 15 + Math.round(((i + 1) / totalFiles) * 85);
       setUploadProgress(progress);

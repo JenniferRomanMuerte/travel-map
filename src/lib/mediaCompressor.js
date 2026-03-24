@@ -104,3 +104,81 @@ export async function compressVideo(file) {
     URL.revokeObjectURL(objectUrl);
   }
 }
+
+export async function compressImage(file) {
+  if (!file || !file.type.startsWith("image/")) {
+    throw new Error("Archivo de imagen no válido");
+  }
+
+  const objectUrl = URL.createObjectURL(file);
+
+  try {
+    const image = await new Promise((resolve, reject) => {
+      const img = new Image();
+      img.onload = () => resolve(img);
+      img.onerror = () => reject(new Error("No se pudo cargar la imagen"));
+      img.src = objectUrl;
+    });
+
+    const canvas = document.createElement("canvas");
+    const ctx = canvas.getContext("2d");
+
+    if (!ctx) {
+      throw new Error("No se pudo obtener el contexto del canvas");
+    }
+
+    const maxWidth = 1600;
+    const maxHeight = 1600;
+
+    const widthRatio = maxWidth / image.width;
+    const heightRatio = maxHeight / image.height;
+    const scale = Math.min(1, widthRatio, heightRatio);
+
+    const targetWidth = Math.round(image.width * scale);
+    const targetHeight = Math.round(image.height * scale);
+
+    canvas.width = targetWidth;
+    canvas.height = targetHeight;
+
+    ctx.drawImage(image, 0, 0, targetWidth, targetHeight);
+
+    const blob = await new Promise((resolve, reject) => {
+      canvas.toBlob(
+        (result) => {
+          if (!result) {
+            reject(new Error("No se pudo generar la imagen comprimida"));
+            return;
+          }
+          resolve(result);
+        },
+        "image/webp",
+        0.8
+      );
+    });
+
+    const baseName = file.name.replace(/\.\w+$/, "");
+    const compressedFile = new File(
+      [blob],
+      `${baseName}.webp`,
+      { type: "image/webp" }
+    );
+
+    console.log(
+      "Imagen original:",
+      file.name,
+      (file.size / 1024 / 1024).toFixed(2),
+      "MB"
+    );
+
+    console.log(
+      "Imagen comprimida:",
+      compressedFile.name,
+      (compressedFile.size / 1024 / 1024).toFixed(2),
+      "MB"
+    );
+
+    return compressedFile;
+  } finally {
+    URL.revokeObjectURL(objectUrl);
+  }
+}

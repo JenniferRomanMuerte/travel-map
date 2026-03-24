@@ -8,7 +8,12 @@ const CircularVideoGallery = ({ videos, onReady, onDeleteVideo }) => {
   const [galleryItems, setGalleryItems] = useState([]);
 
   useEffect(() => {
-    if (!videos || videos.length === 0) return;
+    if (!videos || videos.length === 0) {
+      setGalleryItems([]);
+      return;
+    }
+
+    let isActive = true;
 
     const generateVideoThumbnail = (videoUrl) => {
       return new Promise((resolve) => {
@@ -19,24 +24,30 @@ const CircularVideoGallery = ({ videos, onReady, onDeleteVideo }) => {
         video.playsInline = true;
         video.preload = "metadata";
 
-        video.addEventListener("loadeddata", () => {
+        video.addEventListener("loadedmetadata", () => {
           video.currentTime = 0.1;
         });
 
         video.addEventListener("seeked", () => {
-          const canvas = document.createElement("canvas");
-          canvas.width = video.videoWidth || 800;
-          canvas.height = video.videoHeight || 450;
+          try {
+            const canvas = document.createElement("canvas");
+            canvas.width = video.videoWidth || 800;
+            canvas.height = video.videoHeight || 450;
 
-          const ctx = canvas.getContext("2d");
-          ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+            const ctx = canvas.getContext("2d");
+            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
 
-          const thumbnail = canvas.toDataURL("image/jpeg", 0.8);
-          resolve(thumbnail);
+            const thumbnail = canvas.toDataURL("image/jpeg", 0.8);
+            resolve(thumbnail);
+          } catch (error) {
+            console.error("Error generando thumbnail:", videoUrl, error);
+            resolve("/video-thumb-fallback.webp");
+          }
         });
 
         video.addEventListener("error", () => {
-          resolve("https://picsum.photos/seed/video/800/600");
+          console.error("Error cargando vídeo para thumbnail:", videoUrl);
+          resolve("/video-thumb-fallback.webp");
         });
       });
     };
@@ -44,7 +55,8 @@ const CircularVideoGallery = ({ videos, onReady, onDeleteVideo }) => {
     const buildGalleryItems = async () => {
       const items = await Promise.all(
         videos.map(async (video) => {
-          const thumbnail = video.poster || (await generateVideoThumbnail(video.url));
+          const thumbnail =
+            video.poster || (await generateVideoThumbnail(video.url));
 
           return {
             id: video.id,
@@ -58,14 +70,20 @@ const CircularVideoGallery = ({ videos, onReady, onDeleteVideo }) => {
         })
       );
 
+      if (!isActive) return;
+
       setGalleryItems(items);
 
       requestAnimationFrame(() => {
-        if (onReady) onReady();
+        if (isActive && onReady) onReady();
       });
     };
 
     buildGalleryItems();
+
+    return () => {
+      isActive = false;
+    };
   }, [videos, onReady]);
 
   useEffect(() => {
