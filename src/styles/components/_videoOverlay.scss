@@ -9,17 +9,18 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 2rem;
+  padding: 1rem;
   z-index: 9999;
 
   &__content {
     position: relative;
-    width: min(100%, 900px);
+    width: 100%;
+    max-width: 900px;
     max-height: 90vh;
     background: rgba(20, 20, 26, 0.78);
     border: 1px solid rgba(255, 255, 255, 0.12);
     border-radius: var.$radius-lg;
-    padding: 1.5rem;
+    padding: 1rem;
     box-shadow:
       0 18px 45px rgba(0, 0, 0, 0.22),
       0 0 0 1px rgba(255, 255, 255, 0.03) inset;
@@ -29,54 +30,58 @@
 
   &__delete {
     position: absolute;
-    top: 2rem;
-    left: 1.5rem;
-    min-height: 44px;
-    padding: 0.7rem 1.2rem;
-    border-radius: 12px;
+    top: 0.85rem;
+    left: 0.85rem;
+    min-height: 40px;
+    padding: 0rem 0.9rem;
+    border-radius: 10px;
     border: 1px solid rgba(160, 35, 55, 0.28);
-    background: linear-gradient(90deg,
-        rgba(255, 224, 228, 0.98) 0%,
-        rgba(255, 184, 194, 0.98) 48%,
-        rgba(255, 209, 215, 0.98) 100%);
+    background: linear-gradient(
+      90deg,
+      rgba(255, 224, 228, 0.98) 0%,
+      rgba(255, 184, 194, 0.98) 48%,
+      rgba(255, 209, 215, 0.98) 100%
+    );
     color: #7a1020;
     font-family: var.$font-base;
-    font-size: 0.95rem;
+    font-size: 0.82rem;
     font-weight: 700;
     cursor: pointer;
-    box-shadow: 0 10px 20px rgba(122, 16, 32, 0.18);
+    box-shadow: 0 8px 16px rgba(122, 16, 32, 0.16);
     transition: transform 0.2s ease, box-shadow 0.2s ease;
 
     &:hover {
       transform: translateY(-1px);
-      box-shadow: 0 14px 24px rgba(122, 16, 32, 0.24);
+      box-shadow: 0 12px 20px rgba(122, 16, 32, 0.22);
     }
   }
 
   &__close {
     position: absolute;
-    top: 0.7rem;
-    right: 0.9rem;
+    top: 0.45rem;
+    right: 0.6rem;
     border: none;
     background: transparent;
     color: white;
-    font-size: 2rem;
+    font-size: 1.75rem;
     line-height: 1;
     cursor: pointer;
-    padding: 0.2rem 0.45rem;
+    padding: 0.2rem 0.4rem;
     border-radius: 10px;
   }
 
   &__title {
     color: var.$color-white-soft;
     font-family: var.$font-base;
-    letter-spacing: 0.1rem;
-    margin-top: 1rem;
+    letter-spacing: 0.08rem;
+    margin-top: 2.6rem;
+    margin-bottom: 0.75rem;
     text-align: center;
+    font-size: 0.95rem;
   }
 
   &__media {
-    margin-top: 2.5rem;
+    margin-top: 0;
     border-radius: 18px;
     overflow: hidden;
     background: transparent;
@@ -84,8 +89,55 @@
 
   &__player {
     width: 100%;
-    max-height: 75vh;
+    max-height: 70vh;
     display: block;
     background: transparent;
+  }
+}
+
+@media (min-width: 768px) {
+  .video-overlay {
+    padding: 2rem;
+
+    &__content {
+      width: min(100%, 900px);
+      padding: 1.5rem;
+    }
+
+    &__delete {
+      top: 2rem;
+      left: 1.5rem;
+      min-height: 44px;
+      padding: 0.7rem 1.2rem;
+      border-radius: 12px;
+      font-size: 0.95rem;
+      box-shadow: 0 10px 20px rgba(122, 16, 32, 0.18);
+
+      &:hover {
+        box-shadow: 0 14px 24px rgba(122, 16, 32, 0.24);
+      }
+    }
+
+    &__close {
+      top: 0.7rem;
+      right: 0.9rem;
+      font-size: 2rem;
+      padding: 0.2rem 0.45rem;
+    }
+
+    &__title {
+      margin-top: 1rem;
+      margin-bottom: 1rem;
+      letter-spacing: 0.1rem;
+      font-size: 1rem;
+    }
+
+    &__media {
+      margin-top: 2.5rem;
+    }
+
+    &__player {
+      max-height: 75vh;
+    }
   }
 }
