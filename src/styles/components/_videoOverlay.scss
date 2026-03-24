@@ -29,10 +29,10 @@
 
   &__delete {
     position: absolute;
-    top: 1rem;
-    left: 1rem;
+    top: 2rem;
+    left: 1.5rem;
     min-height: 44px;
-    padding: 0.7rem 1rem;
+    padding: 0.7rem 1.2rem;
     border-radius: 12px;
     border: 1px solid rgba(160, 35, 55, 0.28);
     background: linear-gradient(90deg,
@@ -71,11 +71,12 @@
     color: var.$color-white-soft;
     font-family: var.$font-base;
     letter-spacing: 0.1rem;
-    margin-bottom: 1rem;
+    margin-top: 1rem;
     text-align: center;
   }
 
   &__media {
+    margin-top: 2.5rem;
     border-radius: 18px;
     overflow: hidden;
     background: transparent;

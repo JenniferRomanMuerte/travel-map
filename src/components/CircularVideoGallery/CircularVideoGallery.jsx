@@ -46,7 +46,7 @@ const CircularVideoGallery = ({ videos, onReady, onDeleteVideo }) => {
         });
 
         video.addEventListener("error", () => {
-          console.error("Error cargando vídeo para thumbnail:", videoUrl);
+          console.warn("Thumbnail no disponible para:", videoUrl);
           resolve("/video-thumb-fallback.webp");
         });
       });

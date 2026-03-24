@@ -1,4 +1,6 @@
 import { supabase } from "../lib/supabase";
+import { deleteMediaFile } from "./mediaStorageService";
+
 
 export async function createPlace(data) {
   const { data: place, error } = await supabase
@@ -75,14 +77,8 @@ export async function deletePlace(placeId) {
     .map((item) => item.file_path)
     .filter(Boolean);
 
-  if (filePaths.length > 0) {
-    const { error: storageError } = await supabase.storage
-      .from("travel-media")
-      .remove(filePaths);
-
-    if (storageError) {
-      throw storageError;
-    }
+  for (const filePath of filePaths) {
+    await deleteMediaFile(filePath);
   }
 
   const { error: deleteError } = await supabase
