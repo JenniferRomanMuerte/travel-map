@@ -3,7 +3,7 @@ import { saveMedia } from "../services/mediaService";
 import { compressVideo, compressImage } from "../lib/mediaCompressor";
 import { getCityCountry } from "../services/geocodingService";
 import { uploadMediaFile } from "../services/mediaStorageService";
-import { supabase } from "../lib/supabase";
+import { getCurrentUser } from "../services/authService";
 
 export async function saveTravel(data, setUploadProgress) {
   const { visitedAt, notes, files, coords } = data;
@@ -12,12 +12,9 @@ export async function saveTravel(data, setUploadProgress) {
     throw new Error("Coordenadas no válidas");
   }
 
-  const {
-    data: { user },
-    error: userError
-  } = await supabase.auth.getUser();
+  const user = await getCurrentUser();
 
-  if (userError || !user) {
+  if (!user) {
     throw new Error("Usuario no autenticado");
   }
 
@@ -41,7 +38,7 @@ export async function saveTravel(data, setUploadProgress) {
     country,
     visited_at: visitedAt || null,
     notes,
-    user_id: user.id
+    user_id: user.id,
   });
 
   if (!place) {
@@ -69,8 +66,6 @@ export async function saveTravel(data, setUploadProgress) {
       }
 
       const result = await uploadMediaFile(file);
-      console.log("RESULTADO R2:", result);
-
       await saveMedia(place.id, type, result.url, result.filePath);
 
       const progress = 15 + Math.round(((i + 1) / totalFiles) * 85);

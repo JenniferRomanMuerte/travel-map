@@ -1,41 +1,18 @@
-import { supabase } from "../lib/supabase";
+import { api } from "../lib/api";
 import { compressVideo, compressImage } from "../lib/mediaCompressor";
 import { uploadMediaFile, deleteMediaFile } from "./mediaStorageService";
 
 export async function saveMedia(placeId, type, url, filePath = null) {
-  const { data, error } = await supabase
-    .from("media")
-    .insert([
-      {
-        place_id: placeId,
-        type,
-        url,
-        file_path: filePath,
-      },
-    ])
-    .select()
-    .single();
-
-  if (error) {
-    throw error;
-  }
-
-  return data;
+  return api.post("/media", { place_id: placeId, type, url, file_path: filePath });
 }
 
 export async function getMediaByPlace(placeId) {
-  const { data, error } = await supabase
-    .from("media")
-    .select("*")
-    .eq("place_id", placeId)
-    .order("created_at", { ascending: true });
-
-  if (error) {
-    console.error("Error cargando media:", error);
+  try {
+    return await api.get(`/media/${placeId}`);
+  } catch (err) {
+    console.error("Error cargando media:", err);
     return [];
   }
-
-  return data ?? [];
 }
 
 export async function addFilesToPlace(placeId, files) {
@@ -61,17 +38,7 @@ export async function addFilesToPlace(placeId, files) {
 
   return savedItems;
 }
+
 export async function removeMediaItem(mediaItem) {
-  if (mediaItem.file_path) {
-    await deleteMediaFile(mediaItem.file_path);
-  }
-
-  const { error } = await supabase
-    .from("media")
-    .delete()
-    .eq("id", mediaItem.id);
-
-  if (error) {
-    throw error;
-  }
+  await api.delete(`/media/${mediaItem.id}`);
 }

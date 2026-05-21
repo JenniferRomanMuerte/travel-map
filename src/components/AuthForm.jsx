@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Eye, EyeOff } from "lucide-react";
-import { supabase } from "../lib/supabase";
+import { login, register } from "../services/authService";
 
 const AuthForm = ({ mode, onSuccess }) => {
   const isRegister = mode === "register";
@@ -17,11 +17,7 @@ const AuthForm = ({ mode, onSuccess }) => {
 
   function handleChange(ev) {
     const { name, value } = ev.target;
-
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
+    setFormData((prev) => ({ ...prev, [name]: value }));
   }
 
   async function handleSubmit(ev) {
@@ -34,47 +30,11 @@ const AuthForm = ({ mode, onSuccess }) => {
     const username = formData.username.trim();
 
     try {
-      if (isRegister) {
-        const { data, error: signUpError } = await supabase.auth.signUp({
-          email,
-          password,
-        });
+      const user = isRegister
+        ? await register(email, password, username)
+        : await login(email, password);
 
-        if (signUpError) {
-          throw signUpError;
-        }
-
-        const userId = data?.user?.id;
-
-        if (userId) {
-          const { error: profileError } = await supabase
-            .from("profiles")
-            .insert([
-              {
-                id: userId,
-                username,
-              },
-            ]);
-
-          if (profileError) {
-            throw profileError;
-          }
-        }
-
-        onSuccess();
-        return;
-      }
-
-      const { error: loginError } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      });
-
-      if (loginError) {
-        throw loginError;
-      }
-
-      onSuccess();
+      onSuccess(user);
     } catch (err) {
       console.error("Error en auth:", err);
       setError(err.message || "Ha ocurrido un error");
@@ -140,9 +100,7 @@ const AuthForm = ({ mode, onSuccess }) => {
             className="auth-form__toggle-password"
             type="button"
             onClick={() => setShowPassword((prev) => !prev)}
-            aria-label={
-              showPassword ? "Ocultar contraseña" : "Mostrar contraseña"
-            }
+            aria-label={showPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
           >
             {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
           </button>
@@ -151,16 +109,8 @@ const AuthForm = ({ mode, onSuccess }) => {
 
       {error && <p className="auth-form__error">{error}</p>}
 
-      <button
-        className="auth-form__submit"
-        type="submit"
-        disabled={loading}
-      >
-        {loading
-          ? "Cargando..."
-          : isRegister
-          ? "Crear cuenta"
-          : "Entrar"}
+      <button className="auth-form__submit" type="submit" disabled={loading}>
+        {loading ? "Cargando..." : isRegister ? "Crear cuenta" : "Entrar"}
       </button>
     </form>
   );

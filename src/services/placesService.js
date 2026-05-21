@@ -1,94 +1,22 @@
-import { supabase } from "../lib/supabase";
-import { deleteMediaFile } from "./mediaStorageService";
-
+import { api } from "../lib/api";
 
 export async function createPlace(data) {
-  const { data: place, error } = await supabase
-    .from("places")
-    .insert([data])
-    .select()
-    .single();
-
-  if (error) {
-    console.error("Error creando lugar:", error);
-    throw error;
-  }
-
-  return place;
+  return api.post("/places", data);
 }
 
-export async function getPlaces(userId) {
-  if (!userId) return [];
-
-  const { data, error } = await supabase
-    .from("places")
-    .select("*")
-    .eq("user_id", userId)
-    .order("created_at", { ascending: false });
-
-  if (error) {
-    console.error("Error leyendo lugares:", error);
-    return [];
-  }
-
-  return data ?? [];
+export async function getPlaces() {
+  return api.get("/places");
 }
 
 export async function getPlaceById(id) {
-  const { data, error } = await supabase
-    .from("places")
-    .select("*")
-    .eq("id", id)
-    .single();
-
-  if (error) {
-    throw error;
-  }
-
-  return data;
+  return api.get(`/places/${id}`);
 }
 
 export async function updatePlace(placeId, updates) {
-  const { data, error } = await supabase
-    .from("places")
-    .update(updates)
-    .eq("id", placeId)
-    .select()
-    .single();
-
-  if (error) {
-    throw error;
-  }
-
-  return data;
+  return api.put(`/places/${placeId}`, updates);
 }
 
 export async function deletePlace(placeId) {
-  const { data: mediaItems, error: mediaError } = await supabase
-    .from("media")
-    .select("id, file_path")
-    .eq("place_id", placeId);
-
-  if (mediaError) {
-    throw mediaError;
-  }
-
-  const filePaths = (mediaItems || [])
-    .map((item) => item.file_path)
-    .filter(Boolean);
-
-  for (const filePath of filePaths) {
-    await deleteMediaFile(filePath);
-  }
-
-  const { error: deleteError } = await supabase
-    .from("places")
-    .delete()
-    .eq("id", placeId);
-
-  if (deleteError) {
-    throw deleteError;
-  }
-
+  await api.delete(`/places/${placeId}`);
   return true;
 }

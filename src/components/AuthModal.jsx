@@ -1,6 +1,9 @@
+import { useAuth } from "../context/AuthContext";
 import AuthForm from "./AuthForm";
 
 const AuthModal = ({ isOpen, mode, onClose, switchMode }) => {
+  const { setUser } = useAuth();
+
   if (!isOpen) return null;
 
   function handleOverlayClick(e) {
@@ -9,7 +12,15 @@ const AuthModal = ({ isOpen, mode, onClose, switchMode }) => {
     }
   }
 
-   return (
+  function handleSuccess(user) {
+    setUser(user);
+    if (user?.username) {
+      localStorage.setItem("travelmap_username", user.username);
+    }
+    onClose();
+  }
+
+  return (
     <div className="auth-modal__overlay" onClick={handleOverlayClick}>
       <div className="auth-modal">
         <button
@@ -26,10 +37,7 @@ const AuthModal = ({ isOpen, mode, onClose, switchMode }) => {
         </h2>
 
         <div className="auth-modal__form">
-          <AuthForm
-            mode={mode}
-            onSuccess={onClose}
-          />
+          <AuthForm mode={mode} onSuccess={handleSuccess} />
         </div>
 
         <p className="auth-modal__switch-text">

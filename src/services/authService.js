@@ -1,50 +1,31 @@
-import { supabase } from "../lib/supabase";
+import { api } from "../lib/api";
 
 export async function register(email, password, username) {
-  const { data, error } = await supabase.auth.signUp({
-    email,
-    password,
-    options: {
-      data: {
-        username
-      }
-    }
-  });
-
-  if (error) {
-    throw error;
-  }
-
-  return data;
+  const { token, user } = await api.post("/auth/register", { email, password, username });
+  localStorage.setItem("travelmap_token", token);
+  return user;
 }
 
 export async function login(email, password) {
-  const { data, error } = await supabase.auth.signInWithPassword({
-    email,
-    password
-  });
-
-  if (error) {
-    throw error;
-  }
-
-  return data;
+  const { token, user } = await api.post("/auth/login", { email, password });
+  localStorage.setItem("travelmap_token", token);
+  return user;
 }
 
 export async function logout() {
-  const { error } = await supabase.auth.signOut();
-
-  if (error) {
-    throw error;
-  }
+  localStorage.removeItem("travelmap_token");
+  localStorage.removeItem("travelmap_username");
 }
 
 export async function getCurrentUser() {
-  const { data, error } = await supabase.auth.getUser();
+  const token = localStorage.getItem("travelmap_token");
+  if (!token) return null;
 
-  if (error) {
-    throw error;
+  try {
+    const { user } = await api.get("/auth/me");
+    return user;
+  } catch {
+    localStorage.removeItem("travelmap_token");
+    return null;
   }
-
-  return data?.user || null;
 }
